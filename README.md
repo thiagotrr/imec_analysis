@@ -4,7 +4,7 @@
 Inspeção de Medidor de Consumo baseado em laudos analíticos do INMETRO.
 
 ### Proposta e execução
-> Thiago de Souza Vieira
+> Thiago de Souza Vieira <br>
 > Thiago Rodrigues e Rodrigues
 
 ## Objetivo
