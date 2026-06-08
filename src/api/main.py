@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
     
 app = FastAPI(
     title="IMeC Analysis API",
-    description="Inspeção de Medidor de Consumo baseado em laudos analíticos do INMETRO",
+    description="Inspeção de Medidor de Consumo baseado em laudos analíticos",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -37,5 +37,5 @@ def analisar_inspecao(inspecao_request: InspecaoMedidorRequest) -> InspecaoMedid
         id_medidor=inspecao_request.id_medidor,
         data_inspecao=inspecao_request.data_inspecao,
         resultado="Teste unitário TRR aprovado",
-        detalhes="Detalhamento do resultado da análise do laudo"
+        resultado_detalhado="Detalhamento do resultado da análise do laudo"
     )
