@@ -1,136 +1,228 @@
+from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 
-# ---------------------------------------------------------------------------
-# Carregamento do dataset
-# ---------------------------------------------------------------------------
-DATASET_PATH = Path(__file__).parent / "resultado_laudo_afericao.xlsx"
-df = pd.read_excel(DATASET_PATH)
 
-n_rows, n_cols = df.shape
+DEFAULT_DATASET_FILENAME = "resultado_laudo_afericao.xlsx"
+DEFAULT_DATASET_PATH = Path(__file__).parent / DEFAULT_DATASET_FILENAME
+DEFAULT_TARGET_COLUMN = "CODRSTAFER"
 
-# ---------------------------------------------------------------------------
-# Análise de tipos de dados
-# ---------------------------------------------------------------------------
-types_by_col = df.dtypes
-
-type_groups: dict[str, list[str]] = {}
-for col, dtype in types_by_col.items():
-    key = str(dtype)
-    type_groups.setdefault(key, []).append(col)
-
-# ---------------------------------------------------------------------------
-# Análise de nulos
-# ---------------------------------------------------------------------------
-null_counts = df.isnull().sum()
-null_pct = (null_counts / n_rows * 100).round(2)
-
-HIGH_NULL_THRESHOLD = 50.0  # %
-high_null_cols = null_pct[null_pct > HIGH_NULL_THRESHOLD].index.tolist()
-
-# ---------------------------------------------------------------------------
-# Detecção de colunas de texto livre
-# ---------------------------------------------------------------------------
-# Critério: colunas object com comprimento médio > 30 chars OU cardinalidade > 80% das linhas
+HIGH_NULL_THRESHOLD = 50.0
 FREE_TEXT_AVG_LEN_THRESHOLD = 30
 FREE_TEXT_CARDINALITY_RATIO = 0.80
 
-free_text_cols: list[str] = []
-for col in df.select_dtypes(include=["object", "str"]).columns:
-    avg_len = df[col].dropna().astype(str).str.len().mean()
-    cardinality_ratio = df[col].nunique() / n_rows
-    if avg_len > FREE_TEXT_AVG_LEN_THRESHOLD or cardinality_ratio > FREE_TEXT_CARDINALITY_RATIO:
-        free_text_cols.append(col)
 
-# ---------------------------------------------------------------------------
-# Heurística de categorização automática
-# ---------------------------------------------------------------------------
-id_like_cols = [
-    col for col in df.columns
-    if df[col].nunique() == n_rows
-]
+@dataclass(frozen=True)
+class DatasetProfile:
+    dataset_path: Path
+    n_rows: int
+    n_cols: int
+    types_by_col: pd.Series
+    type_groups: dict[str, list[str]]
+    null_counts: pd.Series
+    null_pct: pd.Series
+    high_null_cols: list[str]
+    free_text_cols: list[str]
+    id_like_cols: list[str]
+    datetime_cols: list[str]
 
-datetime_cols = [
-    col for col, dtype in types_by_col.items()
-    if "datetime" in str(dtype)
-]
 
-# Sugeridas para exclusão: alta % de nulos, colunas ID, datetime, texto livre
-suggested_to_drop = list(
-    dict.fromkeys(high_null_cols + id_like_cols + datetime_cols + free_text_cols)
-)
+@dataclass(frozen=True)
+class FeatureRecommendations:
+    target_column: str | None
+    cols_to_drop: list[str]
+    cols_to_scale: list[str]
+    cols_to_encode: list[str]
+    numeric_cols: list[str]
+    object_cols: list[str]
 
-# Sugeridas para scaling: numéricas, não binárias (0/1), não sugeridas para drop
-numeric_cols = df.select_dtypes(include=["int64", "float64"]).columns.tolist()
-suggested_to_scale = [
-    col for col in numeric_cols
-    if col not in suggested_to_drop
-    and not (df[col].dropna().isin([0, 1]).all() and df[col].nunique() <= 2)
-]
 
-# Sugeridas para label encoding: object, baixa cardinalidade, não texto livre, não sugeridas para drop
-object_cols = df.select_dtypes(include=["object", "str"]).columns.tolist()
-suggested_to_encode = [
-    col for col in object_cols
-    if col not in suggested_to_drop
-    and col not in free_text_cols
-]
+def resolve_dataset_path(dataset_path: str | Path | None = None) -> Path:
+    return Path(dataset_path) if dataset_path is not None else DEFAULT_DATASET_PATH
 
-# ---------------------------------------------------------------------------
-# Arrays explícitos — editar manualmente após revisão do relatório
-# ---------------------------------------------------------------------------
-COLS_TO_DROP: list[str] = suggested_to_drop
-COLS_TO_SCALE: list[str] = suggested_to_scale
-COLS_TO_ENCODE: list[str] = suggested_to_encode
 
-# ---------------------------------------------------------------------------
-# Relatório
-# ---------------------------------------------------------------------------
+def load_dataset(dataset_path: str | Path | None = None) -> pd.DataFrame:
+    return pd.read_excel(resolve_dataset_path(dataset_path))
+
+
+def _group_types(types_by_col: pd.Series) -> dict[str, list[str]]:
+    type_groups: dict[str, list[str]] = {}
+    for col, dtype in types_by_col.items():
+        type_groups.setdefault(str(dtype), []).append(col)
+    return type_groups
+
+
+def detect_free_text_columns(data_frame: pd.DataFrame) -> list[str]:
+    n_rows = max(len(data_frame), 1)
+    free_text_cols: list[str] = []
+
+    for col in data_frame.select_dtypes(include=["object", "string", "category"]).columns:
+        cleaned_values = data_frame[col].dropna().astype(str).str.strip()
+        if cleaned_values.empty:
+            continue
+
+        avg_len = cleaned_values.str.len().mean()
+        cardinality_ratio = cleaned_values.nunique() / n_rows
+        if avg_len > FREE_TEXT_AVG_LEN_THRESHOLD or cardinality_ratio > FREE_TEXT_CARDINALITY_RATIO:
+            free_text_cols.append(col)
+
+    return free_text_cols
+
+
+def build_dataset_profile(
+    data_frame: pd.DataFrame,
+    dataset_path: str | Path | None = None,
+) -> DatasetProfile:
+    resolved_dataset_path = resolve_dataset_path(dataset_path)
+    n_rows, n_cols = data_frame.shape
+    types_by_col = data_frame.dtypes
+    type_groups = _group_types(types_by_col)
+    null_counts = data_frame.isnull().sum()
+    null_pct = (null_counts / max(n_rows, 1) * 100).round(2)
+    high_null_cols = null_pct[null_pct > HIGH_NULL_THRESHOLD].index.tolist()
+    free_text_cols = detect_free_text_columns(data_frame)
+    id_like_cols = [
+        col for col in data_frame.columns
+        if n_rows > 0 and data_frame[col].nunique(dropna=False) == n_rows
+    ]
+    datetime_cols = [
+        col for col, dtype in types_by_col.items()
+        if "datetime" in str(dtype)
+    ]
+
+    return DatasetProfile(
+        dataset_path=resolved_dataset_path,
+        n_rows=n_rows,
+        n_cols=n_cols,
+        types_by_col=types_by_col,
+        type_groups=type_groups,
+        null_counts=null_counts,
+        null_pct=null_pct,
+        high_null_cols=high_null_cols,
+        free_text_cols=free_text_cols,
+        id_like_cols=id_like_cols,
+        datetime_cols=datetime_cols,
+    )
+
+
+def get_feature_recommendations(
+    data_frame: pd.DataFrame,
+    target_column: str | None = DEFAULT_TARGET_COLUMN,
+) -> FeatureRecommendations:
+    profile = build_dataset_profile(data_frame)
+    numeric_cols = data_frame.select_dtypes(include=["number", "bool"]).columns.tolist()
+    object_cols = data_frame.select_dtypes(include=["object", "string", "category"]).columns.tolist()
+
+    suggested_to_drop = list(
+        dict.fromkeys(
+            profile.high_null_cols
+            + profile.id_like_cols
+            + profile.datetime_cols
+            + profile.free_text_cols
+        )
+    )
+
+    if target_column in suggested_to_drop:
+        suggested_to_drop.remove(target_column)
+
+    suggested_to_scale = [
+        col for col in numeric_cols
+        if col not in suggested_to_drop
+        and col != target_column
+        and not (
+            data_frame[col].dropna().isin([0, 1]).all()
+            and data_frame[col].nunique(dropna=True) <= 2
+        )
+    ]
+
+    suggested_to_encode = [
+        col for col in object_cols
+        if col not in suggested_to_drop
+        and col not in profile.free_text_cols
+        and col != target_column
+    ]
+
+    return FeatureRecommendations(
+        target_column=target_column,
+        cols_to_drop=suggested_to_drop,
+        cols_to_scale=suggested_to_scale,
+        cols_to_encode=suggested_to_encode,
+        numeric_cols=numeric_cols,
+        object_cols=object_cols,
+    )
+
+
+def get_analysis_bundle(
+    data_frame: pd.DataFrame,
+    dataset_path: str | Path | None = None,
+    target_column: str | None = DEFAULT_TARGET_COLUMN,
+) -> tuple[DatasetProfile, FeatureRecommendations]:
+    profile = build_dataset_profile(data_frame, dataset_path)
+    recommendations = get_feature_recommendations(data_frame, target_column)
+    return profile, recommendations
+
+
 def _section(title: str) -> None:
     print(f"\n{'=' * 60}")
     print(f"  {title}")
     print(f"{'=' * 60}")
 
 
-def print_report(data_frame: pd.DataFrame) -> None:
-    print(f"\nDataset: {DATASET_PATH.name}")
-    print(f"Dimensões: {n_rows} linhas × {n_cols} colunas")
+def print_report(
+    data_frame: pd.DataFrame | None = None,
+    dataset_path: str | Path | None = None,
+    target_column: str | None = DEFAULT_TARGET_COLUMN,
+) -> None:
+    resolved_dataset_path = resolve_dataset_path(dataset_path)
+    working_frame = data_frame if data_frame is not None else load_dataset(resolved_dataset_path)
+    profile, recommendations = get_analysis_bundle(
+        working_frame,
+        dataset_path=resolved_dataset_path,
+        target_column=target_column,
+    )
 
-    print(data_frame.head(10))
+    print(f"\nDataset: {profile.dataset_path.name}")
+    print(f"Dimensões: {profile.n_rows} linhas × {profile.n_cols} colunas")
+
+    print(working_frame.head(10))
 
     _section("TIPOS DE DADOS POR COLUNA")
-    for dtype, cols in type_groups.items():
+    for dtype, cols in profile.type_groups.items():
         print(f"\n  [{dtype}] ({len(cols)} colunas)")
         for col in cols:
             print(f"    - {col}")
 
     _section("ANÁLISE DE NULOS")
-    cols_with_nulls = null_counts[null_counts > 0]
+    cols_with_nulls = profile.null_counts[profile.null_counts > 0]
     if cols_with_nulls.empty:
         print("\n  Nenhuma coluna com valores nulos.")
     else:
         print(f"\n  {'Coluna':<40} {'Nulos':>8}  {'%':>7}")
         print(f"  {'-' * 57}")
         for col in cols_with_nulls.index:
-            flag = "  ← >50%" if col in high_null_cols else ""
-            print(f"  {col:<40} {int(null_counts[col]):>8}  {null_pct[col]:>6.1f}%{flag}")
+            flag = "  <- >50%" if col in profile.high_null_cols else ""
+            print(
+                f"  {col:<40} {int(profile.null_counts[col]):>8}"
+                f"  {profile.null_pct[col]:>6.1f}%{flag}"
+            )
 
     _section("COLUNAS DE TEXTO LIVRE (detectadas)")
-    if free_text_cols:
-        for col in free_text_cols:
-            avg_len = df[col].dropna().astype(str).str.len().mean()
-            card_ratio = df[col].nunique() / n_rows
+    if profile.free_text_cols:
+        for col in profile.free_text_cols:
+            cleaned_values = working_frame[col].dropna().astype(str).str.strip()
+            avg_len = cleaned_values.str.len().mean()
+            card_ratio = cleaned_values.nunique() / max(profile.n_rows, 1)
             print(f"  - {col:<38}  avg_len={avg_len:.1f}  card_ratio={card_ratio:.2f}")
     else:
         print("\n  Nenhuma coluna de texto livre detectada.")
 
     _section("ARRAYS SUGERIDOS (heurística)")
-    print(f"\n  COLS_TO_DROP  ({len(COLS_TO_DROP)}): {COLS_TO_DROP}")
-    print(f"\n  COLS_TO_SCALE ({len(COLS_TO_SCALE)}): {COLS_TO_SCALE}")
-    print(f"\n  COLS_TO_ENCODE ({len(COLS_TO_ENCODE)}): {COLS_TO_ENCODE}")
+    print(f"\n  COLS_TO_DROP  ({len(recommendations.cols_to_drop)}): {recommendations.cols_to_drop}")
+    print(f"\n  COLS_TO_SCALE ({len(recommendations.cols_to_scale)}): {recommendations.cols_to_scale}")
+    print(f"\n  COLS_TO_ENCODE ({len(recommendations.cols_to_encode)}): {recommendations.cols_to_encode}")
     print()
 
 
 if __name__ == "__main__":
-    print_report(df)
+    print_report()
