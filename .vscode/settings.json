@@ -4,6 +4,10 @@
         "/^python src/machine_learning/feature_engineering\\.py$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^python src/machine_learning/data_preparation\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     },
     "python-envs.defaultEnvManager": "ms-python.python:system"

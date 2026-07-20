@@ -1,5 +1,6 @@
 import json
 import pickle
+import webbrowser
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,8 +16,10 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import FunctionTransformer, LabelEncoder, OneHotEncoder, StandardScaler
 
 try:
+    from .data_exploration import compute_numeric_correlation_matrix, generate_exploration_artifacts
     from .feature_engineering import (
         DEFAULT_TARGET_COLUMN,
+        DatasetProfile,
         FeatureRecommendations,
         get_analysis_bundle,
         get_feature_recommendations,
@@ -24,8 +27,10 @@ try:
         resolve_dataset_path,
     )
 except ImportError:
+    from data_exploration import compute_numeric_correlation_matrix, generate_exploration_artifacts
     from feature_engineering import (
         DEFAULT_TARGET_COLUMN,
+        DatasetProfile,
         FeatureRecommendations,
         get_analysis_bundle,
         get_feature_recommendations,
@@ -70,6 +75,24 @@ class PreparedDatasetResult:
     artifacts: PreparationArtifacts | None = None
 
 
+@dataclass(frozen=True)
+class PreparationWorkflowResult:
+    preparation_result: PreparedDatasetResult
+    dashboard_path: Path | None = None
+
+
+def _as_profile_metadata(profile: DatasetProfile) -> dict[str, object]:
+    return {
+        "n_rows": profile.n_rows,
+        "n_cols": profile.n_cols,
+        "high_null_cols": profile.high_null_cols,
+        "free_text_cols": profile.free_text_cols,
+        "id_like_cols": profile.id_like_cols,
+        "datetime_cols": profile.datetime_cols,
+        "type_groups": profile.type_groups,
+    }
+
+
 def clone_dataset(data_frame: pd.DataFrame) -> pd.DataFrame:
     return data_frame.copy(deep=True)
 
@@ -107,12 +130,11 @@ def drop_highly_correlated_columns(
     feature_frame: pd.DataFrame,
     threshold: float = DEFAULT_CORRELATION_THRESHOLD,
 ) -> tuple[pd.DataFrame, list[str]]:
-    numeric_frame = feature_frame.select_dtypes(include=["number", "bool"])
-    if numeric_frame.shape[1] < 2:
+    correlation_matrix = compute_numeric_correlation_matrix(feature_frame)
+    if correlation_matrix.shape[1] < 2:
         return feature_frame, []
 
-    correlation_matrix = numeric_frame.astype(float).corr().abs()
-    upper_triangle = correlation_matrix.where(
+    upper_triangle = correlation_matrix.abs().where(
         np.triu(np.ones(correlation_matrix.shape), k=1).astype(bool)
     )
     high_correlation_columns = [
@@ -376,6 +398,42 @@ def save_preprocessing_artifacts(
     )
 
 
+def run_preparation_workflow(
+    data_frame: pd.DataFrame | None = None,
+    dataset_path: str | Path | None = None,
+    target_column: str = DEFAULT_TARGET_COLUMN,
+    output_dir: str | Path | None = None,
+    correlation_threshold: float = DEFAULT_CORRELATION_THRESHOLD,
+    enable_pca: bool = True,
+    pca_components: float | int = 0.95,
+    persist_artifacts: bool = True,
+    enable_exploration: bool = True,
+    open_browser: bool = True,
+) -> PreparationWorkflowResult:
+    result = prepare_training_dataset(
+        data_frame=data_frame,
+        dataset_path=dataset_path,
+        target_column=target_column,
+        output_dir=output_dir,
+        correlation_threshold=correlation_threshold,
+        enable_pca=enable_pca,
+        pca_components=pca_components,
+        persist_artifacts=persist_artifacts,
+        enable_exploration=enable_exploration,
+    )
+
+    dashboard_path_raw = result.metadata.get("exploration", {}).get("dashboard_path")
+    dashboard_path = Path(dashboard_path_raw) if isinstance(dashboard_path_raw, str) and dashboard_path_raw else None
+
+    if open_browser and dashboard_path is not None and dashboard_path.exists():
+        webbrowser.open(dashboard_path.resolve().as_uri())
+
+    return PreparationWorkflowResult(
+        preparation_result=result,
+        dashboard_path=dashboard_path,
+    )
+
+
 def prepare_training_dataset(
     data_frame: pd.DataFrame | None = None,
     dataset_path: str | Path | None = None,
@@ -385,6 +443,7 @@ def prepare_training_dataset(
     enable_pca: bool = True,
     pca_components: float | int = 0.95,
     persist_artifacts: bool = True,
+    enable_exploration: bool = True,
 ) -> PreparedDatasetResult:
     source_path = resolve_dataset_path(dataset_path)
     raw_frame = load_dataset(source_path) if data_frame is None else clone_dataset(data_frame)
@@ -398,11 +457,20 @@ def prepare_training_dataset(
     target_null_rows_removed = int(deduplicated_frame[target_column].isna().sum())
     cleaned_frame = deduplicated_frame.dropna(subset=[target_column]).reset_index(drop=True)
 
-    _, recommendations = get_analysis_bundle(
+    profile, recommendations = get_analysis_bundle(
         cleaned_frame,
         dataset_path=source_path,
         target_column=target_column,
     )
+
+    exploration_artifacts = None
+    if enable_exploration:
+        exploration_artifacts = generate_exploration_artifacts(
+            cleaned_frame,
+            profile=profile,
+            target_column=target_column,
+            output_dir=output_dir,
+        )
 
     heuristic_drop_columns = [
         column for column in recommendations.cols_to_drop
@@ -463,6 +531,7 @@ def prepare_training_dataset(
             "cols_to_scale": recommendations.cols_to_scale,
             "cols_to_encode": recommendations.cols_to_encode,
         },
+        "dataset_profile": _as_profile_metadata(profile),
         "dimensionality_reduction": {
             "enabled": reduction_step is not None,
             "method": reduction_step.__class__.__name__ if reduction_step is not None else None,
@@ -475,6 +544,15 @@ def prepare_training_dataset(
             "dtype": str(cleaned_frame[target_column].dtype),
             "encoded": target_encoder is not None,
             "classes": target_encoder.classes_.tolist() if target_encoder is not None else None,
+        },
+        "exploration": {
+            "enabled": enable_exploration,
+            "output_dir": str(exploration_artifacts.output_dir) if exploration_artifacts is not None else None,
+            "metadata_path": str(exploration_artifacts.metadata_path) if exploration_artifacts is not None else None,
+            "dashboard_path": str(exploration_artifacts.dashboard_path) if exploration_artifacts is not None else None,
+            "numeric_columns": exploration_artifacts.numeric_columns if exploration_artifacts is not None else [],
+            "skipped_columns": exploration_artifacts.skipped_columns if exploration_artifacts is not None else [],
+            "files_by_kind": exploration_artifacts.files_by_kind if exploration_artifacts is not None else {},
         },
     }
 
@@ -544,4 +622,7 @@ def print_preparation_summary(result: PreparedDatasetResult) -> None:
 
 
 if __name__ == "__main__":
-    print_preparation_summary(prepare_training_dataset())
+    workflow_result = run_preparation_workflow()
+    print_preparation_summary(workflow_result.preparation_result)
+    if workflow_result.dashboard_path is not None:
+        print(f"Dashboard HTML: {workflow_result.dashboard_path}")

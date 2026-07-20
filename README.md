@@ -21,11 +21,27 @@ O pacote [src/machine_learning](src/machine_learning) agora separa duas etapas:
 - [src/machine_learning/feature_engineering.py](src/machine_learning/feature_engineering.py): perfilamento do dataset e recomendações heurísticas de colunas.
 - [src/machine_learning/data_preparation.py](src/machine_learning/data_preparation.py): limpeza, imputação, encoding, scaling, redução de dimensionalidade e persistência dos artefatos de pré-processamento.
 
+Durante a preparação, o pipeline também gera artefatos de data exploration em [model/exploration](model/exploration):
+
+- histogramas das features numéricas em PNG e HTML
+- gráficos de dispersão ou distribuição por target em PNG e HTML
+- matriz de correlação em PNG e HTML
+- metadata JSON com colunas consideradas e arquivos emitidos
+
 Exemplo de execução local:
 
 ```powershell
 python src/machine_learning/feature_engineering.py
 python src/machine_learning/data_preparation.py
+python src/main.py
+```
+
+O comando [src/main.py](src/main.py) agora dispara o fluxo completo de preparação + exploração gráfica, gera um dashboard HTML consolidado em [model/exploration](model/exploration) e solicita a abertura automática no browser padrão.
+
+Para subir a API, use:
+
+```powershell
+python src/main.py api
 ```
 
 Saídas geradas em [model](model):
