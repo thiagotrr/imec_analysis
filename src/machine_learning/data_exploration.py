@@ -10,9 +10,9 @@ import seaborn as sns
 from plotly.subplots import make_subplots
 
 try:
-    from .feature_engineering import DatasetProfile
+    from .feature_engineering import DatasetProfile, get_manually_removed_features
 except ImportError:
-    from feature_engineering import DatasetProfile
+    from feature_engineering import DatasetProfile, get_manually_removed_features
 
 
 DEFAULT_EXPLORATION_DIRNAME = "exploration"
@@ -243,12 +243,13 @@ def generate_exploration_artifacts(
     exploration_dir = get_exploration_dir(output_dir)
     exploration_dir.mkdir(parents=True, exist_ok=True)
 
-    feature_frame = data_frame.drop(columns=[target_column], errors="ignore")
+    manually_removed_features = get_manually_removed_features(data_frame, target_column)
+    feature_frame = data_frame.drop(columns=manually_removed_features + [target_column], errors="ignore")
     numeric_columns = get_numeric_feature_columns(feature_frame)
     if not numeric_columns:
         return None
 
-    skipped_columns = [column for column in feature_frame.columns if column not in numeric_columns]
+    skipped_columns = manually_removed_features + [column for column in feature_frame.columns if column not in numeric_columns]
     files_by_kind: dict[str, list[str]] = {
         "histogram_png": [],
         "histogram_html": [],
@@ -294,6 +295,7 @@ def generate_exploration_artifacts(
         "target_column": target_column,
         "numeric_columns": numeric_columns,
         "skipped_columns": skipped_columns,
+        "manually_removed_features": manually_removed_features,
         "dashboard_path": str(dashboard_path),
         "files_by_kind": files_by_kind,
     }
