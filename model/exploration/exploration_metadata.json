@@ -3,7 +3,6 @@
   "target_column": "CODRSTAFER",
   "numeric_columns": [
     "NUMOSM",
-    "VLRENS_CGA_CPC",
     "VLRENS_CGA_IDU",
     "VLRENS_CGA_PQN",
     "NUMLAUDO",
@@ -30,6 +29,7 @@
   ],
   "skipped_columns": [
     "VLRENS_CGA_NMN",
+    "VLRENS_CGA_CPC",
     "RESPAFER",
     "CODPRSERV",
     "VLRDVI_ELM_A",
@@ -90,6 +90,7 @@
   ],
   "manually_removed_features": [
     "VLRENS_CGA_NMN",
+    "VLRENS_CGA_CPC",
     "RESPAFER",
     "CODPRSERV",
     "VLRDVI_ELM_A",

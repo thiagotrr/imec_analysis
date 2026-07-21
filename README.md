@@ -14,12 +14,13 @@ O valor gerado está diretamente associado ao aumento da assertividade nos resul
 
 Registros incorretos desses resultados expõem a operação ao risco de validação de cálculos com critérios inadequados, além de demandarem retrabalho para ajustes, impactando negativamente a eficiência operacional e a confiabilidade do processo.
 
-## Preparação de dados para treino
+## Preparação e classificação
 
-O pacote [src/machine_learning](src/machine_learning) agora separa duas etapas:
+O pacote [src/machine_learning](src/machine_learning) agora separa três etapas:
 
 - [src/machine_learning/feature_engineering.py](src/machine_learning/feature_engineering.py): perfilamento do dataset e recomendações heurísticas de colunas.
 - [src/machine_learning/data_preparation.py](src/machine_learning/data_preparation.py): limpeza, imputação, encoding, scaling, redução de dimensionalidade e persistência dos artefatos de pré-processamento.
+- [src/machine_learning/classification](src/machine_learning/classification): treino sequencial dos classificadores CatBoost, XGBoost, k-NN e SVM com cálculo e consolidação de métricas.
 
 Durante a preparação, o pipeline também gera artefatos de data exploration em [model/exploration](model/exploration):
 
@@ -36,7 +37,7 @@ python src/machine_learning/data_preparation.py
 python src/main.py
 ```
 
-O comando [src/main.py](src/main.py) agora dispara o fluxo completo de preparação + exploração gráfica, gera um dashboard HTML consolidado em [model/exploration](model/exploration) e solicita a abertura automática no browser padrão.
+O comando [src/main.py](src/main.py) agora dispara o fluxo completo de preparação + exploração gráfica + classificação, gera um dashboard HTML consolidado em [model/exploration](model/exploration), treina os algoritmos em sequência e persiste o consolidado em [model/classification](model/classification).
 
 Para subir a API, use:
 
@@ -50,6 +51,8 @@ Saídas geradas em [model](model):
 - metadata com colunas removidas e configuração aplicada
 - dataset preparado para treinamento
 - encoder do target, quando necessário
+- resumo consolidado das métricas de classificação em CSV
+- detalhes da avaliação por algoritmo em JSON
 
 ```mermaid
 flowchart LR
