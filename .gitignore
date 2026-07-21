@@ -37,6 +37,12 @@ pip-log.txt
 pip-delete-this-directory.txt
 logs/
 
+# Generated machine learning artifacts
+model/*.csv
+model/**/*.html
+model/**/*.png
+model/**/*.csv
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
