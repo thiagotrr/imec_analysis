@@ -17,6 +17,15 @@ from .data_preparation import (
 	save_preprocessing_artifacts,
 	transform_dataset,
 )
+from .classification import (
+	DEFAULT_CLASSIFICATION_DIRNAME,
+	DEFAULT_CLASSIFICATION_SUMMARY_FILENAME,
+	ClassificationArtifacts,
+	ClassificationConfig,
+	ClassificationResult,
+	ClassificationWorkflowResult,
+	run_classification_workflow,
+)
 from .data_exploration import (
 	DEFAULT_EXPLORATION_INDEX_FILENAME,
 	DEFAULT_EXPLORATION_DIRNAME,
@@ -40,7 +49,9 @@ from .feature_engineering import (
 	detect_free_text_columns,
 	get_analysis_bundle,
 	get_feature_recommendations,
+	get_manually_removed_features,
 	load_dataset,
+	MANUALLY_REMOVED_FEATURES,
 	print_report,
 	resolve_dataset_path,
 )
@@ -48,6 +59,8 @@ from .feature_engineering import (
 
 __all__ = [
 	"DEFAULT_CORRELATION_THRESHOLD",
+	"DEFAULT_CLASSIFICATION_DIRNAME",
+	"DEFAULT_CLASSIFICATION_SUMMARY_FILENAME",
 	"DEFAULT_DATASET_FILENAME",
 	"DEFAULT_DATASET_PATH",
 	"DEFAULT_EXPLORATION_DIRNAME",
@@ -56,10 +69,15 @@ __all__ = [
 	"DEFAULT_TARGET_COLUMN",
 	"DatasetProfile",
 	"ExplorationArtifacts",
+	"ClassificationArtifacts",
+	"ClassificationConfig",
+	"ClassificationResult",
+	"ClassificationWorkflowResult",
 	"FeatureRecommendations",
 	"FREE_TEXT_AVG_LEN_THRESHOLD",
 	"FREE_TEXT_CARDINALITY_RATIO",
 	"HIGH_NULL_THRESHOLD",
+	"MANUALLY_REMOVED_FEATURES",
 	"PreparationArtifacts",
 	"PreparedDatasetResult",
 	"PreparationWorkflowResult",
@@ -76,6 +94,7 @@ __all__ = [
 	"generate_exploration_artifacts",
 	"get_exploration_dir",
 	"get_feature_recommendations",
+	"get_manually_removed_features",
 	"get_model_dir",
 	"get_numeric_feature_columns",
 	"load_dataset",
@@ -84,6 +103,7 @@ __all__ = [
 	"print_preparation_summary",
 	"print_report",
 	"resolve_dataset_path",
+	"run_classification_workflow",
 	"run_preparation_workflow",
 	"save_preprocessing_artifacts",
 	"transform_dataset",

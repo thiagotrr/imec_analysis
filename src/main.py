@@ -3,7 +3,7 @@ from pathlib import Path
 
 import uvicorn
 from log import get_log
-from machine_learning import print_preparation_summary, run_preparation_workflow
+from machine_learning import print_preparation_summary, run_classification_workflow, run_preparation_workflow
 
 log = get_log()
 
@@ -21,8 +21,8 @@ def run_api() -> None:
         sys.exit(1)
 
 
-def run_preparation_and_show_exploration(output_dir: str | Path | None = None) -> None:
-    log.info("Iniciando fluxo de preparação e exploração gráfica", extra={"event": "exploration_start"})
+def run_ml_pipeline(output_dir: str | Path | None = None) -> None:
+    log.info("Iniciando pipeline de machine learning", extra={"event": "ml_pipeline_start"})
     try:
         workflow_result = run_preparation_workflow(output_dir=output_dir, open_browser=True)
         print_preparation_summary(workflow_result.preparation_result)
@@ -33,8 +33,12 @@ def run_preparation_and_show_exploration(output_dir: str | Path | None = None) -
                 "Dashboard HTML gerado e solicitado ao browser",
                 extra={"event": "exploration_dashboard", "path": str(workflow_result.dashboard_path)},
             )
+
+        classification_result = run_classification_workflow(output_dir=output_dir)
+        if classification_result.artifacts is not None:
+            print(f"Resumo consolidado: {classification_result.artifacts.summary_path}")
     except Exception:
-        log.exception("Erro não tratado durante a execução do fluxo de exploração", extra={"event": "exploration_error"})
+        log.exception("Erro não tratado durante a execução do pipeline de machine learning", extra={"event": "ml_pipeline_error"})
         sys.exit(1)
 
 
@@ -45,7 +49,7 @@ def main() -> None:
         run_api()
         return
 
-    run_preparation_and_show_exploration()
+    run_ml_pipeline()
 
 
 if __name__ == "__main__":

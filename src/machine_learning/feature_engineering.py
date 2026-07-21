@@ -8,6 +8,39 @@ DEFAULT_DATASET_FILENAME = "resultado_laudo_afericao.xlsx"
 DEFAULT_DATASET_PATH = Path(__file__).parent / DEFAULT_DATASET_FILENAME
 DEFAULT_TARGET_COLUMN = "CODRSTAFER"
 
+MANUALLY_REMOVED_FEATURES = [
+    "VLRENS_CGA_NMN",
+    "VLRENS_CGA_CPC",
+    "RESPAFER",
+    "CODPRSERV",
+    "VLRDVI_ELM_A",
+    "VLRDVI_ELM_B",
+    "VLRDVI_ELM_C",
+    "FTRCRC_CGA_NMN_ELM",
+    "TPRIFR",
+    "TPRSUP",
+    "FTRCRC_CGA_NMN_ELM_1",
+    "TPRIFR_1",
+    "TPRSUP_1",
+    "CODPRJ",
+    "ENSAIO_LAUDO_CORR",
+    "INDRST_ENS_COR",
+    "INDRST_ENS_TNS",
+    "ENSAIO_LAUDO_MESA",
+    "ENSAIO_LAUDO_TEMPERATURA",
+    "ENSAIO_LAUDO_TEMPERATURA2",
+    "IND_LAUDO_EXTERNO",
+    "VLRENS_CGA_CPC_1",
+    "VLRDVI_ELM_B_1",
+    "VLRDVI_ELM_C_1",
+    "INDRST_ENS_COR_1",
+    "INDRST_ENS_TNS_1",
+    "VLRLTR_MAN_KWH",
+    "VLRLTR_MAN_KVARH",
+    "VLR_LTR_MAN_KVARH",
+    "SEQ_NUMLAUDO",
+]
+
 HIGH_NULL_THRESHOLD = 50.0
 FREE_TEXT_AVG_LEN_THRESHOLD = 30
 FREE_TEXT_CARDINALITY_RATIO = 0.80
@@ -70,6 +103,16 @@ def detect_free_text_columns(data_frame: pd.DataFrame) -> list[str]:
     return free_text_cols
 
 
+def get_manually_removed_features(
+    data_frame: pd.DataFrame,
+    target_column: str | None = DEFAULT_TARGET_COLUMN,
+) -> list[str]:
+    return [
+        column for column in MANUALLY_REMOVED_FEATURES
+        if column in data_frame.columns and column != target_column
+    ]
+
+
 def build_dataset_profile(
     data_frame: pd.DataFrame,
     dataset_path: str | Path | None = None,
@@ -120,6 +163,7 @@ def get_feature_recommendations(
             + profile.id_like_cols
             + profile.datetime_cols
             + profile.free_text_cols
+            + get_manually_removed_features(data_frame, target_column)
         )
     )
 
