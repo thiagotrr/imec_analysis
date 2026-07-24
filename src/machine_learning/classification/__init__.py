@@ -1,8 +1,29 @@
+from .cross_validation import DEFAULT_CV_FOLDS, DEFAULT_CV_SCORING, run_stratified_cross_validation
+from .hyperparameter_search import (
+    CATBOOST_PARAM_DISTRIBUTIONS,
+    DEFAULT_SEARCH_CV_FOLDS,
+    DEFAULT_SEARCH_ITERATIONS,
+    DEFAULT_SEARCH_SCORING,
+    HYPERPARAMETER_SEARCH_SUPPORTED_ALGORITHMS,
+    XGBOOST_PARAM_DISTRIBUTIONS,
+    HyperparameterSearchResult,
+    get_param_distributions,
+    run_hyperparameter_search,
+)
 from .metrics import ClassificationMetrics, compute_classification_metrics, format_classification_metrics
-from .models import DEFAULT_CLASSIFIER_ORDER, build_classifier_registry, run_classifier_training
+from .models import (
+    DEFAULT_CATBOOST_PARAMS,
+    DEFAULT_CLASSIFIER_ORDER,
+    DEFAULT_XGBOOST_PARAMS,
+    build_classifier_registry,
+    run_classifier_training,
+)
+from .resampling import RESAMPLING_STRATEGIES, build_sampler, wrap_with_resampling
 from .workflow import (
     DEFAULT_CLASSIFICATION_DIRNAME,
     DEFAULT_CLASSIFICATION_SUMMARY_FILENAME,
+    DEFAULT_MIN_CLASS_COUNT,
+    DEFAULT_TEST_SIZE,
     ClassificationArtifacts,
     ClassificationConfig,
     ClassificationResult,
@@ -11,17 +32,36 @@ from .workflow import (
 )
 
 __all__ = [
+    "CATBOOST_PARAM_DISTRIBUTIONS",
     "ClassificationArtifacts",
     "ClassificationConfig",
     "ClassificationMetrics",
     "ClassificationResult",
     "ClassificationWorkflowResult",
+    "DEFAULT_CATBOOST_PARAMS",
     "DEFAULT_CLASSIFICATION_DIRNAME",
     "DEFAULT_CLASSIFICATION_SUMMARY_FILENAME",
     "DEFAULT_CLASSIFIER_ORDER",
+    "DEFAULT_CV_FOLDS",
+    "DEFAULT_CV_SCORING",
+    "DEFAULT_MIN_CLASS_COUNT",
+    "DEFAULT_SEARCH_CV_FOLDS",
+    "DEFAULT_SEARCH_ITERATIONS",
+    "DEFAULT_SEARCH_SCORING",
+    "DEFAULT_TEST_SIZE",
+    "DEFAULT_XGBOOST_PARAMS",
+    "HYPERPARAMETER_SEARCH_SUPPORTED_ALGORITHMS",
+    "HyperparameterSearchResult",
+    "RESAMPLING_STRATEGIES",
+    "XGBOOST_PARAM_DISTRIBUTIONS",
     "build_classifier_registry",
+    "build_sampler",
     "compute_classification_metrics",
     "format_classification_metrics",
+    "get_param_distributions",
     "run_classification_workflow",
     "run_classifier_training",
+    "run_hyperparameter_search",
+    "run_stratified_cross_validation",
+    "wrap_with_resampling",
 ]
