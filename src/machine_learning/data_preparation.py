@@ -16,22 +16,36 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import FunctionTransformer, LabelEncoder, OneHotEncoder, StandardScaler
 
 try:
-    from .data_exploration import compute_numeric_correlation_matrix, generate_exploration_artifacts
+    from .data_exploration import (
+        compute_numeric_correlation_matrix,
+        generate_exploration_artifacts,
+        save_class_distribution_artifacts,
+    )
     from .feature_engineering import (
         DEFAULT_TARGET_COLUMN,
+        MIN_CLASS_PERCENTAGE_THRESHOLD,
         DatasetProfile,
         FeatureRecommendations,
+        compute_class_distribution,
+        filter_classes_by_percentage,
         get_analysis_bundle,
         get_feature_recommendations,
         load_dataset,
         resolve_dataset_path,
     )
 except ImportError:
-    from data_exploration import compute_numeric_correlation_matrix, generate_exploration_artifacts
+    from data_exploration import (
+        compute_numeric_correlation_matrix,
+        generate_exploration_artifacts,
+        save_class_distribution_artifacts,
+    )
     from feature_engineering import (
         DEFAULT_TARGET_COLUMN,
+        MIN_CLASS_PERCENTAGE_THRESHOLD,
         DatasetProfile,
         FeatureRecommendations,
+        compute_class_distribution,
+        filter_classes_by_percentage,
         get_analysis_bundle,
         get_feature_recommendations,
         load_dataset,
@@ -197,7 +211,10 @@ def _build_column_transformer(
                 Pipeline(
                     steps=[
                         ("imputer", SimpleImputer(strategy="constant", fill_value="__missing__")),
-                        ("stringify", FunctionTransformer(_stringify_values, validate=False)),
+                        (
+                            "stringify",
+                            FunctionTransformer(_stringify_values, validate=False, feature_names_out="one-to-one"),
+                        ),
                         ("encoder", _build_one_hot_encoder()),
                     ]
                 ),
@@ -284,9 +301,15 @@ def fit_preprocessor(
         enable_pca=False,
         pca_components=pca_components,
     )
+    # Mantemos `transformed_probe` no formato original (esparso ou denso)
+    # retornado pelo `ColumnTransformer`: `_build_dimensionality_reducer`
+    # decide entre `TruncatedSVD` (para entradas esparsas, ex.: quando há
+    # colunas categóricas com one-hot encoding) e `PCA` (para entradas densas)
+    # justamente com base em `sparse.issparse(transformed_probe)`. Densificar
+    # aqui antes dessa checagem faria a decisão sempre cair em `PCA`, que não
+    # suporta `n_components` fracionário (variância explicada) em entradas
+    # esparsas — foi exatamente o bug corrigido nesta revisão.
     transformed_probe = probe_pipeline.fit_transform(feature_frame)
-    if hasattr(transformed_probe, "toarray"):
-        transformed_probe = transformed_probe.toarray()
 
     transformed_width = transformed_probe.shape[1]
     if not enable_pca or transformed_width <= 1:
@@ -317,11 +340,29 @@ def _get_transformed_feature_names(pipeline: Pipeline, transformed_width: int) -
     return [f"feature_{index:03d}" for index in range(1, transformed_width + 1)]
 
 
+def _sparse_matrix_to_frame(transformed: object, index: pd.Index, feature_names: list[str]) -> pd.DataFrame:
+    # `pd.DataFrame.sparse.from_spmatrix` usa `fill_value=NaN` por padrão nesta
+    # versão do pandas, o que representa incorretamente o "zero implícito" da
+    # matriz esparsa (ex.: categoria não-selecionada do one-hot encoding) como
+    # valor ausente — e `DataFrame.astype(SparseDtype(..., fill_value=0.0))`
+    # não corrige isso, pois a igualdade de `SparseDtype` ignora `fill_value`
+    # e o astype vira um no-op. Construímos cada coluna explicitamente com
+    # `fill_value=0.0` para preservar a esparsidade sem introduzir NaN
+    # espúrios (o que quebraria consumidores como SMOTE/ADASYN e o round-trip
+    # via CSV).
+    csc_matrix = transformed.tocsc()
+    sparse_columns = {
+        name: pd.arrays.SparseArray(csc_matrix.getcol(position).toarray().ravel(), fill_value=0.0)
+        for position, name in enumerate(feature_names)
+    }
+    return pd.DataFrame(sparse_columns, index=index)
+
+
 def transform_dataset(feature_frame: pd.DataFrame, pipeline: Pipeline) -> pd.DataFrame:
     transformed = pipeline.transform(feature_frame)
     if sparse.issparse(transformed):
         feature_names = _get_transformed_feature_names(pipeline, transformed.shape[1])
-        return pd.DataFrame.sparse.from_spmatrix(transformed, index=feature_frame.index, columns=feature_names)
+        return _sparse_matrix_to_frame(transformed, feature_frame.index, feature_names)
 
     if hasattr(transformed, "toarray"):
         transformed = transformed.toarray()
@@ -409,6 +450,8 @@ def run_preparation_workflow(
     persist_artifacts: bool = True,
     enable_exploration: bool = True,
     open_browser: bool = True,
+    enable_class_purge: bool = True,
+    min_class_percentage: float = MIN_CLASS_PERCENTAGE_THRESHOLD,
 ) -> PreparationWorkflowResult:
     result = prepare_training_dataset(
         data_frame=data_frame,
@@ -420,6 +463,8 @@ def run_preparation_workflow(
         pca_components=pca_components,
         persist_artifacts=persist_artifacts,
         enable_exploration=enable_exploration,
+        enable_class_purge=enable_class_purge,
+        min_class_percentage=min_class_percentage,
     )
 
     dashboard_path_raw = result.metadata.get("exploration", {}).get("dashboard_path")
@@ -444,6 +489,8 @@ def prepare_training_dataset(
     pca_components: float | int = 0.95,
     persist_artifacts: bool = True,
     enable_exploration: bool = True,
+    enable_class_purge: bool = True,
+    min_class_percentage: float = MIN_CLASS_PERCENTAGE_THRESHOLD,
 ) -> PreparedDatasetResult:
     source_path = resolve_dataset_path(dataset_path)
     raw_frame = load_dataset(source_path) if data_frame is None else clone_dataset(data_frame)
@@ -456,6 +503,26 @@ def prepare_training_dataset(
     deduplicated_frame = _remove_duplicate_rows(normalized_frame)
     target_null_rows_removed = int(deduplicated_frame[target_column].isna().sum())
     cleaned_frame = deduplicated_frame.dropna(subset=[target_column]).reset_index(drop=True)
+
+    # Distribuição de classes do target ANTES de qualquer expurgo, para documentar o "antes".
+    class_distribution_before = compute_class_distribution(cleaned_frame[target_column])
+    if enable_class_purge:
+        training_frame, class_purge_metadata = filter_classes_by_percentage(
+            cleaned_frame, target_column, min_percentage=min_class_percentage
+        )
+    else:
+        training_frame = cleaned_frame
+        class_purge_metadata = None
+    class_distribution_after = compute_class_distribution(training_frame[target_column])
+
+    class_distribution_artifact_paths: dict[str, dict[str, str]] = {}
+    if persist_artifacts:
+        class_distribution_artifact_paths["before_purge"] = save_class_distribution_artifacts(
+            class_distribution_before, output_dir, target_column, stage="before_purge"
+        )
+        class_distribution_artifact_paths["after_purge"] = save_class_distribution_artifacts(
+            class_distribution_after, output_dir, target_column, stage="after_purge"
+        )
 
     profile, recommendations = get_analysis_bundle(
         cleaned_frame,
@@ -474,10 +541,10 @@ def prepare_training_dataset(
 
     heuristic_drop_columns = [
         column for column in recommendations.cols_to_drop
-        if column in cleaned_frame.columns and column != target_column
+        if column in training_frame.columns and column != target_column
     ]
 
-    feature_frame = cleaned_frame.drop(
+    feature_frame = training_frame.drop(
         columns=heuristic_drop_columns + [target_column],
         errors="ignore",
     ).copy()
@@ -488,7 +555,7 @@ def prepare_training_dataset(
     )
 
     pipeline_recommendations = get_feature_recommendations(
-        pd.concat([feature_frame, cleaned_frame[[target_column]]], axis=1),
+        pd.concat([feature_frame, training_frame[[target_column]]], axis=1),
         target_column=target_column,
     )
     pipeline, feature_groups = fit_preprocessor(
@@ -499,7 +566,7 @@ def prepare_training_dataset(
     )
 
     transformed_features = transform_dataset(feature_frame, pipeline)
-    transformed_target, target_encoder = _prepare_target_series(cleaned_frame[target_column].copy())
+    transformed_target, target_encoder = _prepare_target_series(training_frame[target_column].copy())
 
     prepared_dataset = transformed_features.copy()
     prepared_dataset.insert(0, target_column, transformed_target.to_numpy())
@@ -518,6 +585,13 @@ def prepare_training_dataset(
         "transformed_shape": list(transformed_features.shape),
         "duplicate_rows_removed": int(original_shape[0] - deduplicated_frame.shape[0]),
         "target_null_rows_removed": target_null_rows_removed,
+        "training_shape": list(training_frame.shape),
+        "class_purge": {
+            "enabled": enable_class_purge,
+            "min_class_percentage": min_class_percentage,
+            **(class_purge_metadata or {}),
+            "artifact_paths": class_distribution_artifact_paths or None,
+        },
         "dropped_columns": {
             "heuristic": heuristic_drop_columns,
             "constant": constant_columns,
@@ -603,6 +677,16 @@ def print_preparation_summary(result: PreparedDatasetResult) -> None:
     print(f"Colunas removidas por heurística: {len(result.dropped_columns['heuristic'])}")
     print(f"Colunas removidas por constância: {len(result.dropped_columns['constant'])}")
     print(f"Colunas removidas por correlação: {len(result.dropped_columns['high_correlation'])}")
+
+    class_purge_metadata = result.metadata.get("class_purge", {})
+    if class_purge_metadata.get("enabled"):
+        print(
+            "Expurgo de classes de baixa representatividade "
+            f"(limiar={class_purge_metadata.get('min_class_percentage')}%): "
+            f"{class_purge_metadata.get('original_class_count')} -> "
+            f"{class_purge_metadata.get('retained_class_count')} classes, "
+            f"{class_purge_metadata.get('retained_rows_percentage')}% das linhas retidas."
+        )
 
     reduction_metadata = result.metadata["dimensionality_reduction"]
     if reduction_metadata["enabled"]:

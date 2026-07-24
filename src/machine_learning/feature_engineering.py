@@ -45,6 +45,26 @@ HIGH_NULL_THRESHOLD = 50.0
 FREE_TEXT_AVG_LEN_THRESHOLD = 30
 FREE_TEXT_CARDINALITY_RATIO = 0.80
 
+MIN_CLASS_PERCENTAGE_THRESHOLD = 15.0
+"""Percentual mínimo (sobre o total de linhas) que uma classe do target
+precisa representar para ser mantida no dataset de treino/teste.
+
+Classes abaixo deste limiar são consideradas de baixa representatividade e
+removidas antes do treino, tanto na etapa de preparação
+(``data_preparation.prepare_training_dataset``) quanto na etapa de split de
+classificação (``classification.workflow._split_dataset``), via
+``filter_classes_by_percentage``. Essa é a estratégia primária de expurgo,
+que substitui o antigo critério baseado apenas em contagem absoluta
+(``min_class_count``); a contagem absoluta é mantida como rede de segurança
+complementar para eventuais classes residuais muito raras.
+
+Como o problema tem dezenas de classes (a maioria naturalmente com fração
+individual pequena), um limiar de 15% tende a reter apenas as classes
+dominantes — esse é o comportamento intencional solicitado para focar o
+modelo nas classes de maior representatividade, em detrimento de classes
+raras que os modelos historicamente classificam muito mal.
+"""
+
 
 @dataclass(frozen=True)
 class DatasetProfile:
@@ -195,6 +215,74 @@ def get_feature_recommendations(
         numeric_cols=numeric_cols,
         object_cols=object_cols,
     )
+
+
+def compute_class_distribution(target_series: pd.Series) -> pd.DataFrame:
+    """Calcula a contagem e o percentual de cada classe presente em ``target_series``.
+
+    Retorna um ``DataFrame`` com colunas ``class``, ``count`` e ``percentage``
+    (percentual sobre o total de linhas de ``target_series``), ordenado da
+    classe mais para a menos frequente.
+    """
+    total_rows = len(target_series)
+    counts = target_series.value_counts(dropna=False).sort_values(ascending=False)
+    distribution = counts.rename("count").reset_index()
+    distribution.columns = ["class", "count"]
+    distribution["class"] = distribution["class"].astype(str)
+    distribution["percentage"] = (distribution["count"] / max(total_rows, 1) * 100).round(4)
+    return distribution[["class", "count", "percentage"]]
+
+
+def identify_low_representation_classes(
+    target_series: pd.Series,
+    min_percentage: float = MIN_CLASS_PERCENTAGE_THRESHOLD,
+) -> list[str]:
+    """Retorna os rótulos (como string) das classes cujo percentual sobre o total é menor que ``min_percentage``."""
+    distribution = compute_class_distribution(target_series)
+    return distribution.loc[distribution["percentage"] < min_percentage, "class"].tolist()
+
+
+def filter_classes_by_percentage(
+    data_frame: pd.DataFrame,
+    target_column: str,
+    min_percentage: float = MIN_CLASS_PERCENTAGE_THRESHOLD,
+) -> tuple[pd.DataFrame, dict[str, object]]:
+    """Remove linhas cuja classe do target represente menos que ``min_percentage``% do total de linhas.
+
+    Retorna uma tupla ``(dataframe_filtrado, metadata)`` em que ``metadata``
+    documenta as distribuições antes/depois do expurgo e as classes
+    removidas, para fins de auditoria/relatório.
+    """
+    if target_column not in data_frame.columns:
+        raise ValueError(f"Coluna alvo '{target_column}' não encontrada no dataset.")
+
+    before_distribution = compute_class_distribution(data_frame[target_column])
+    low_representation_classes = before_distribution.loc[
+        before_distribution["percentage"] < min_percentage, "class"
+    ].tolist()
+
+    target_as_str = data_frame[target_column].astype(str)
+    filtered_frame = data_frame[~target_as_str.isin(low_representation_classes)].copy()
+    after_distribution = compute_class_distribution(filtered_frame[target_column])
+
+    original_rows = len(data_frame)
+    retained_rows = len(filtered_frame)
+    metadata = {
+        "min_class_percentage": min_percentage,
+        "original_rows": int(original_rows),
+        "retained_rows": int(retained_rows),
+        "removed_rows": int(original_rows - retained_rows),
+        "retained_rows_percentage": round(retained_rows / max(original_rows, 1) * 100, 4),
+        "original_class_count": int(before_distribution.shape[0]),
+        "retained_class_count": int(after_distribution.shape[0]),
+        "removed_class_count": int(before_distribution.shape[0] - after_distribution.shape[0]),
+        "removed_classes": before_distribution[
+            before_distribution["class"].isin(low_representation_classes)
+        ].to_dict(orient="records"),
+        "before_distribution": before_distribution.to_dict(orient="records"),
+        "after_distribution": after_distribution.to_dict(orient="records"),
+    }
+    return filtered_frame, metadata
 
 
 def get_analysis_bundle(

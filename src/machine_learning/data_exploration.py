@@ -234,6 +234,62 @@ def create_exploration_dashboard(
         return dashboard_path
 
 
+def save_class_distribution_artifacts(
+    distribution: pd.DataFrame,
+    output_dir: str | Path | None,
+    target_column: str,
+    stage: str,
+) -> dict[str, str]:
+    """Persiste a distribuição de classes do target (contagem/percentual) em CSV/JSON e um gráfico de barras PNG/HTML.
+
+    ``distribution`` deve ter as colunas ``class``, ``count`` e ``percentage``
+    (ver ``feature_engineering.compute_class_distribution``). ``stage``
+    identifica o momento da distribuição (ex.: ``"before_purge"``,
+    ``"after_purge"``) e é usado no nome dos arquivos gerados, para permitir a
+    comparação "antes x depois" do expurgo de classes de baixa
+    representatividade.
+    """
+    exploration_dir = get_exploration_dir(output_dir)
+    exploration_dir.mkdir(parents=True, exist_ok=True)
+    stem = f"class_distribution_{_sanitize_filename(stage)}_{_sanitize_filename(target_column)}"
+
+    csv_path = exploration_dir / f"{stem}.csv"
+    json_path = exploration_dir / f"{stem}.json"
+    png_path = exploration_dir / f"{stem}.png"
+    html_path = exploration_dir / f"{stem}.html"
+
+    distribution.to_csv(csv_path, index=False)
+    distribution.to_json(json_path, orient="records", indent=2, force_ascii=False)
+
+    ordered = distribution.sort_values("count", ascending=True)
+    figure_height = max(4.0, 0.35 * len(ordered))
+    figure, axis = plt.subplots(figsize=(9, figure_height))
+    sns.barplot(data=ordered, x="count", y="class", ax=axis, color="#0f766e")
+    axis.set_xlabel("Quantidade de registros")
+    axis.set_ylabel(target_column)
+    axis.set_title(f"Distribuição de classes de {target_column} ({stage})")
+    figure.tight_layout()
+    figure.savefig(png_path, dpi=150, bbox_inches="tight")
+    plt.close(figure)
+
+    bar_figure = px.bar(
+        distribution.sort_values("count", ascending=False),
+        x="class",
+        y="count",
+        hover_data=["percentage"],
+        title=f"Distribuição de classes de {target_column} ({stage})",
+    )
+    bar_figure.update_layout(xaxis_title=target_column, yaxis_title="Quantidade de registros")
+    bar_figure.write_html(html_path)
+
+    return {
+        "csv": str(csv_path),
+        "json": str(json_path),
+        "png": str(png_path),
+        "html": str(html_path),
+    }
+
+
 def generate_exploration_artifacts(
     data_frame: pd.DataFrame,
     profile: DatasetProfile,
