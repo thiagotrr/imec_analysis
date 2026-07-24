@@ -13,10 +13,12 @@ from sklearn.utils.class_weight import compute_sample_weight
 
 from ..data_preparation import get_model_dir
 from ..feature_engineering import (
+    CLASS_TIER_DISCARD_LABEL,
     DEFAULT_TARGET_COLUMN,
     MIN_CLASS_PERCENTAGE_THRESHOLD,
     compute_class_distribution,
     filter_classes_by_percentage,
+    qualify_class_distribution,
 )
 from .cross_validation import DEFAULT_CV_FOLDS, run_stratified_cross_validation
 from .hyperparameter_search import (
@@ -27,7 +29,12 @@ from .hyperparameter_search import (
     HyperparameterSearchResult,
     run_hyperparameter_search,
 )
-from .metrics import ClassificationMetrics, compute_classification_metrics, format_classification_metrics
+from .metrics import (
+    ClassificationMetrics,
+    compute_classification_metrics,
+    compute_per_class_metrics,
+    format_classification_metrics,
+)
 from .models import DEFAULT_CLASSIFIER_ORDER, build_classifier_registry, run_classifier_training
 from .resampling import wrap_with_resampling
 
@@ -86,6 +93,12 @@ class ClassificationResult:
     resampling: str | None = None
     cross_validation: dict[str, object] | None = None
     hyperparameter_search: dict[str, object] | None = None
+    per_class: list[dict[str, object]] | None = None
+    """Precision/recall/f1/support por classe (rótulo original + camada de
+    qualificação A/B/C/D), no conjunto de teste — ver ``metrics.compute_per_class_metrics``
+    e ``_decorate_per_class_with_labels_and_tiers``. Permite avaliar o efeito
+    do resampling especificamente nas classes das camadas B/C, em vez de
+    apenas nas médias macro."""
 
 
 @dataclass(frozen=True)
@@ -135,7 +148,7 @@ def _split_dataset(
     if target_column not in data_frame.columns:
         raise ValueError(f"Target column '{target_column}' not found in prepared dataset.")
 
-    full_distribution = compute_class_distribution(data_frame[target_column])
+    full_distribution = qualify_class_distribution(compute_class_distribution(data_frame[target_column]))
 
     percentage_filtered_frame, percentage_metadata = filter_classes_by_percentage(
         data_frame, target_column, min_percentage=min_class_percentage
@@ -175,7 +188,9 @@ def _split_dataset(
         "removed_rows": int(len(data_frame) - len(filtered_frame)),
         "removed_rare_classes_by_count": {str(label): int(count) for label, count in rare_class_counts.items()},
         "class_distribution_before": full_distribution.to_dict(orient="records"),
-        "class_distribution_after": compute_class_distribution(filtered_frame[target_column]).to_dict(orient="records"),
+        "class_distribution_after": qualify_class_distribution(
+            compute_class_distribution(filtered_frame[target_column])
+        ).to_dict(orient="records"),
         "target_label_mapping": {
             str(label): int(encoded_label)
             for encoded_label, label in enumerate(target_encoder.classes_)
@@ -194,6 +209,15 @@ def _print_result(result: ClassificationResult) -> None:
     print(f"F1: {metrics.f1:.4f}")
     print(f"ROC-AUC: {metrics.roc_auc:.4f}" if metrics.roc_auc is not None else "ROC-AUC: n/a")
     print(f"PR-AUC: {metrics.pr_auc:.4f}" if metrics.pr_auc is not None else "PR-AUC: n/a")
+    if result.per_class:
+        non_dominant = [entry for entry in result.per_class if entry.get("tier") != "A"]
+        if non_dominant:
+            print("Por classe (camadas B/C - foco do data augmentation):")
+            for entry in non_dominant:
+                print(
+                    f"  classe={entry['original_class']} (camada {entry['tier']}, n={entry['support']}) "
+                    f"precision={entry['precision']:.3f} recall={entry['recall']:.3f} f1={entry['f1']:.3f}"
+                )
     if result.cross_validation is not None:
         f1_cv = result.cross_validation.get("f1_macro", {})
         recall_cv = result.cross_validation.get("recall_macro", {})
@@ -205,6 +229,28 @@ def _print_result(result: ClassificationResult) -> None:
             f"recall_macro={recall_cv.get('mean'):.4f}±{recall_cv.get('std'):.4f} "
             f"roc_auc_macro={roc_auc_cv.get('mean'):.4f}±{roc_auc_cv.get('std'):.4f}"
         )
+
+
+def _decorate_per_class_with_labels_and_tiers(
+    per_class: list[dict[str, object]],
+    label_by_encoded: dict[int, str],
+    tier_by_label: dict[str, str],
+) -> list[dict[str, object]]:
+    decorated = []
+    for entry in per_class:
+        original_label = label_by_encoded.get(int(entry["class"]))
+        decorated.append(
+            {
+                **entry,
+                "original_class": original_label,
+                "tier": tier_by_label.get(original_label) if original_label is not None else None,
+            }
+        )
+    # Camadas mais raras (piores candidatas a augmentation) primeiro, para
+    # facilitar a leitura de quem mais precisa de atenção no relatório.
+    tier_order = {"A": 0, "B": 1, "C": 2, CLASS_TIER_DISCARD_LABEL: 3}
+    decorated.sort(key=lambda item: tier_order.get(item["tier"], 99))
+    return decorated
 
 
 def run_classification_workflow(
@@ -233,6 +279,14 @@ def run_classification_workflow(
     registry = build_classifier_registry(random_state=resolved_config.random_state, n_classes=n_classes)
     results: list[ClassificationResult] = []
     hyperparameter_search_results: list[HyperparameterSearchResult] = []
+
+    label_by_encoded = {
+        encoded_label: original_label
+        for original_label, encoded_label in split_metadata["target_label_mapping"].items()
+    }
+    tier_by_label = {
+        entry["class"]: entry["tier"] for entry in split_metadata["class_distribution_after"]
+    }
 
     for algorithm_name in resolved_config.algorithm_order:
         base_model = registry.get(algorithm_name)
@@ -282,6 +336,11 @@ def run_classification_workflow(
                 training_result.y_score,
                 classes=training_result.classes,
             )
+            per_class = _decorate_per_class_with_labels_and_tiers(
+                compute_per_class_metrics(y_test, training_result.y_pred, training_result.classes),
+                label_by_encoded,
+                tier_by_label,
+            )
 
             cross_validation_summary = None
             if resolved_config.enable_cross_validation:
@@ -303,6 +362,7 @@ def run_classification_workflow(
                 resampling=resampling_strategy,
                 cross_validation=cross_validation_summary,
                 hyperparameter_search=search_summary,
+                per_class=per_class,
             )
             results.append(result)
             _print_result(result)
@@ -325,6 +385,7 @@ def run_classification_workflow(
             **format_classification_metrics(result.metrics),
             "cross_validation": result.cross_validation,
             "hyperparameter_search": result.hyperparameter_search,
+            "per_class": result.per_class,
         }
         for result in results
     ]

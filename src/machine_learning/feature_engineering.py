@@ -45,7 +45,41 @@ HIGH_NULL_THRESHOLD = 50.0
 FREE_TEXT_AVG_LEN_THRESHOLD = 30
 FREE_TEXT_CARDINALITY_RATIO = 0.80
 
-MIN_CLASS_PERCENTAGE_THRESHOLD = 15.0
+CLASS_TIER_THRESHOLDS: dict[str, float] = {
+    "A": 15.0,
+    "B": 1.0,
+    "C": 0.1,
+}
+"""Limiares percentuais (sobre o total de linhas) que definem as **camadas de
+qualificação** de classes do target, da mais para a menos representativa:
+
+- **A** (>= 15%): classes dominantes, sem necessidade de tratamento especial.
+- **B** (>= 1% e < 15%): volume relevante (centenas a milhares de amostras);
+  candidatas legítimas a técnicas de data augmentation (SMOTE/ADASYN), pois
+  há sinal real suficiente para interpolar com robustez.
+- **C** (>= 0.1% e < 1%): volume marginal (dezenas a poucas centenas de
+  amostras); zona cinzenta — augmentation só deve ser usada com validação
+  cruzada rigorosa e ciência de que o ganho pode não generalizar.
+- Abaixo do menor limiar aqui definido, a classe é qualificada como
+  ``CLASS_TIER_DISCARD_LABEL`` ("D" — cauda estatística) e é descartada do
+  treino: não há dados reais suficientes para nenhuma técnica (algorítmica
+  ou não) produzir resultado confiável nessas classes.
+
+Este dicionário é a única fonte de verdade das camadas — adicionar/remover/
+ajustar uma camada aqui é suficiente para propagar a mudança para
+``classify_class_tier``, ``qualify_class_distribution`` e
+``build_class_weight_registry``, sem tocar em nenhuma outra lógica (ver
+docs/task05_evolucao_pipeline_modelos_v2.md para o racional completo por
+trás dos limiares e docs/task05_analise_data_augmentation.md para a análise
+de confiabilidade de SMOTE/ADASYN por camada).
+"""
+
+CLASS_TIER_DISCARD_LABEL = "D"
+"""Rótulo da camada de "cauda estatística": classes qualificadas nesta
+camada são descartadas do treino de forma sistemática (ver
+``classify_class_tier`` e ``filter_classes_by_percentage``)."""
+
+MIN_CLASS_PERCENTAGE_THRESHOLD = CLASS_TIER_THRESHOLDS["C"]
 """Percentual mínimo (sobre o total de linhas) que uma classe do target
 precisa representar para ser mantida no dataset de treino/teste.
 
@@ -58,11 +92,12 @@ que substitui o antigo critério baseado apenas em contagem absoluta
 (``min_class_count``); a contagem absoluta é mantida como rede de segurança
 complementar para eventuais classes residuais muito raras.
 
-Como o problema tem dezenas de classes (a maioria naturalmente com fração
-individual pequena), um limiar de 15% tende a reter apenas as classes
-dominantes — esse é o comportamento intencional solicitado para focar o
-modelo nas classes de maior representatividade, em detrimento de classes
-raras que os modelos historicamente classificam muito mal.
+O valor padrão está alinhado ao limiar inferior da camada "C" em
+``CLASS_TIER_THRESHOLDS`` — ou seja, por padrão o expurgo descarta apenas as
+classes da camada "D" (cauda estatística, sem volume suficiente para
+qualquer técnica de modelagem ou augmentation) e retém as camadas A, B e C.
+Callers podem sobrescrever este valor (ex.: ``min_percentage=15.0``) para
+experimentos que queiram reter só a camada A, por exemplo.
 """
 
 
@@ -92,7 +127,14 @@ class FeatureRecommendations:
 
 
 def resolve_dataset_path(dataset_path: str | Path | None = None) -> Path:
-    return Path(dataset_path) if dataset_path is not None else DEFAULT_DATASET_PATH
+    if dataset_path is not None:
+        return Path(dataset_path)
+    if DEFAULT_DATASET_PATH.exists():
+        return DEFAULT_DATASET_PATH
+    repo_root_candidate = DEFAULT_DATASET_PATH.parents[2] / DEFAULT_DATASET_FILENAME
+    if repo_root_candidate.exists():
+        return repo_root_candidate
+    return DEFAULT_DATASET_PATH
 
 
 def load_dataset(dataset_path: str | Path | None = None) -> pd.DataFrame:
@@ -233,6 +275,122 @@ def compute_class_distribution(target_series: pd.Series) -> pd.DataFrame:
     return distribution[["class", "count", "percentage"]]
 
 
+def classify_class_tier(
+    percentage: float,
+    tier_thresholds: dict[str, float] | None = None,
+) -> str:
+    """Classifica um percentual de representatividade na camada correspondente (A/B/C/D).
+
+    Os limiares são avaliados do maior para o menor (independentemente da
+    ordem de inserção de ``tier_thresholds``), garantindo um comportamento
+    escalável e previsível mesmo que a camada seja reconfigurada em
+    ``CLASS_TIER_THRESHOLDS``. Retorna ``CLASS_TIER_DISCARD_LABEL`` quando
+    ``percentage`` fica abaixo de todos os limiares informados.
+    """
+    thresholds = tier_thresholds if tier_thresholds is not None else CLASS_TIER_THRESHOLDS
+    for tier, threshold in sorted(thresholds.items(), key=lambda item: item[1], reverse=True):
+        if percentage >= threshold:
+            return tier
+    return CLASS_TIER_DISCARD_LABEL
+
+
+def qualify_class_distribution(
+    distribution: pd.DataFrame,
+    tier_thresholds: dict[str, float] | None = None,
+) -> pd.DataFrame:
+    """Retorna uma cópia de ``distribution`` (ver ``compute_class_distribution``) com uma coluna ``tier`` adicionada.
+
+    Cada classe é qualificada em uma camada (A/B/C ou a camada de descarte
+    ``CLASS_TIER_DISCARD_LABEL``) via ``classify_class_tier``, aplicada ao
+    seu percentual de representatividade. Não modifica ``distribution`` no
+    lugar — mantém ``compute_class_distribution`` com sua assinatura de
+    colunas original (``class``/``count``/``percentage``) para não quebrar
+    consumidores existentes.
+    """
+    qualified = distribution.copy()
+    qualified["tier"] = qualified["percentage"].apply(
+        lambda pct: classify_class_tier(pct, tier_thresholds)
+    )
+    return qualified
+
+
+def compute_balanced_class_weights(distribution: pd.DataFrame) -> pd.DataFrame:
+    """Adiciona uma coluna ``weight`` a ``distribution`` com o peso "balanced" de cada classe.
+
+    Segue a mesma fórmula usada por ``sklearn.utils.class_weight.compute_class_weight("balanced", ...)``:
+    ``weight = total_rows / (n_classes * count)``. Quanto menor a
+    representatividade da classe, maior o peso — útil para compensar o
+    desbalanceamento na função de perda dos modelos (``class_weight``/
+    ``sample_weight``) sem recorrer a data augmentation.
+    """
+    weighted = distribution.copy()
+    total_rows = int(weighted["count"].sum())
+    n_classes = weighted.shape[0]
+    if total_rows == 0 or n_classes == 0:
+        weighted["weight"] = pd.Series(dtype=float)
+        return weighted
+    weighted["weight"] = (total_rows / (n_classes * weighted["count"])).round(6)
+    return weighted
+
+
+def build_class_weight_registry(
+    data_frame: pd.DataFrame,
+    target_column: str,
+    min_percentage: float = MIN_CLASS_PERCENTAGE_THRESHOLD,
+    tier_thresholds: dict[str, float] | None = None,
+) -> dict[str, object]:
+    """Monta o "registro de pesos e qualificação de classes" — insumo para a aplicação.
+
+    Combina, em uma única estrutura, a qualificação por camada
+    (``qualify_class_distribution``) e o peso balanceado
+    (``compute_balanced_class_weights``) de cada classe retida (camadas
+    A/B/C, ou seja, tudo que não seja ``CLASS_TIER_DISCARD_LABEL`` de acordo
+    com ``min_percentage``), além de um resumo do que foi descartado.
+
+    Este registro é persistido em disco (ver
+    ``data_preparation.save_class_weight_registry``) como um artefato
+    estável da aplicação (não é output de exploração descartável): a
+    intenção é servir de referência para uma futura camada de inferência
+    que componha, via LLM, um texto de retorno da API mencionando a
+    confiabilidade/acurácia esperada para a classe prevista, com base na sua
+    camada de qualificação e peso.
+    """
+    thresholds = tier_thresholds if tier_thresholds is not None else CLASS_TIER_THRESHOLDS
+    full_distribution = qualify_class_distribution(
+        compute_class_distribution(data_frame[target_column]), thresholds
+    )
+    is_retained = full_distribution["percentage"] >= min_percentage
+    retained = full_distribution[is_retained].reset_index(drop=True)
+    discarded = full_distribution[~is_retained].reset_index(drop=True)
+    weighted_retained = compute_balanced_class_weights(retained)
+
+    discarded_by_tier: list[dict[str, object]] = []
+    if not discarded.empty:
+        discarded_by_tier = (
+            discarded.groupby("tier", as_index=False)
+            .agg(class_count=("class", "count"), total_rows=("count", "sum"), total_percentage=("percentage", "sum"))
+            .round({"total_percentage": 4})
+            .to_dict(orient="records")
+        )
+
+    total_rows = int(len(data_frame))
+    retained_rows = int(retained["count"].sum()) if not retained.empty else 0
+    return {
+        "target_column": target_column,
+        "min_class_percentage": min_percentage,
+        "tier_thresholds": dict(thresholds),
+        "discard_tier_label": CLASS_TIER_DISCARD_LABEL,
+        "total_rows": total_rows,
+        "retained_rows": retained_rows,
+        "retained_rows_percentage": round(retained_rows / max(total_rows, 1) * 100, 4),
+        "retained_class_count": int(retained.shape[0]),
+        "discarded_class_count": int(discarded.shape[0]),
+        "discarded_rows": int(total_rows - retained_rows),
+        "classes": weighted_retained.to_dict(orient="records"),
+        "discarded_summary_by_tier": discarded_by_tier,
+    }
+
+
 def identify_low_representation_classes(
     target_series: pd.Series,
     min_percentage: float = MIN_CLASS_PERCENTAGE_THRESHOLD,
@@ -256,14 +414,14 @@ def filter_classes_by_percentage(
     if target_column not in data_frame.columns:
         raise ValueError(f"Coluna alvo '{target_column}' não encontrada no dataset.")
 
-    before_distribution = compute_class_distribution(data_frame[target_column])
+    before_distribution = qualify_class_distribution(compute_class_distribution(data_frame[target_column]))
     low_representation_classes = before_distribution.loc[
         before_distribution["percentage"] < min_percentage, "class"
     ].tolist()
 
     target_as_str = data_frame[target_column].astype(str)
     filtered_frame = data_frame[~target_as_str.isin(low_representation_classes)].copy()
-    after_distribution = compute_class_distribution(filtered_frame[target_column])
+    after_distribution = qualify_class_distribution(compute_class_distribution(filtered_frame[target_column]))
 
     original_rows = len(data_frame)
     retained_rows = len(filtered_frame)

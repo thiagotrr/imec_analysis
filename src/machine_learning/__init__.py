@@ -1,4 +1,5 @@
 from .data_preparation import (
+	DEFAULT_CLASS_WEIGHT_REGISTRY_FILENAME,
 	DEFAULT_CORRELATION_THRESHOLD,
 	DEFAULT_MODEL_DIR,
 	PreparationArtifacts,
@@ -14,6 +15,7 @@ from .data_preparation import (
 	prepare_training_dataset,
 	print_preparation_summary,
 	run_preparation_workflow,
+	save_class_weight_registry,
 	save_preprocessing_artifacts,
 	transform_dataset,
 )
@@ -38,6 +40,8 @@ from .data_exploration import (
 	save_class_distribution_artifacts,
 )
 from .feature_engineering import (
+	CLASS_TIER_DISCARD_LABEL,
+	CLASS_TIER_THRESHOLDS,
 	DEFAULT_DATASET_FILENAME,
 	DEFAULT_DATASET_PATH,
 	DEFAULT_TARGET_COLUMN,
@@ -47,7 +51,10 @@ from .feature_engineering import (
 	MIN_CLASS_PERCENTAGE_THRESHOLD,
 	DatasetProfile,
 	FeatureRecommendations,
+	build_class_weight_registry,
 	build_dataset_profile,
+	classify_class_tier,
+	compute_balanced_class_weights,
 	compute_class_distribution,
 	detect_free_text_columns,
 	filter_classes_by_percentage,
@@ -58,11 +65,15 @@ from .feature_engineering import (
 	load_dataset,
 	MANUALLY_REMOVED_FEATURES,
 	print_report,
+	qualify_class_distribution,
 	resolve_dataset_path,
 )
 
 
 __all__ = [
+	"CLASS_TIER_DISCARD_LABEL",
+	"CLASS_TIER_THRESHOLDS",
+	"DEFAULT_CLASS_WEIGHT_REGISTRY_FILENAME",
 	"DEFAULT_CORRELATION_THRESHOLD",
 	"DEFAULT_CLASSIFICATION_DIRNAME",
 	"DEFAULT_CLASSIFICATION_SUMMARY_FILENAME",
@@ -87,9 +98,12 @@ __all__ = [
 	"PreparationArtifacts",
 	"PreparedDatasetResult",
 	"PreparationWorkflowResult",
+	"build_class_weight_registry",
 	"build_dataset_profile",
 	"build_preprocessing_pipeline",
+	"classify_class_tier",
 	"clone_dataset",
+	"compute_balanced_class_weights",
 	"compute_class_distribution",
 	"compute_numeric_correlation_matrix",
 	"create_exploration_dashboard",
@@ -111,10 +125,12 @@ __all__ = [
 	"prepare_training_dataset",
 	"print_preparation_summary",
 	"print_report",
+	"qualify_class_distribution",
 	"resolve_dataset_path",
 	"run_classification_workflow",
 	"run_preparation_workflow",
 	"save_class_distribution_artifacts",
+	"save_class_weight_registry",
 	"save_preprocessing_artifacts",
 	"transform_dataset",
 ]

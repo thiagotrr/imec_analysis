@@ -44,7 +44,13 @@ def run_stratified_cross_validation(
         y,
         cv=stratified_kfold,
         scoring=resolved_scoring,
-        n_jobs=-1,
+        # n_jobs=1 (serial) de propósito: CatBoost/XGBoost já paralelizam o
+        # treino internamente via threads; paralelizar também os folds via
+        # processos (joblib/loky) causaria paralelismo aninhado (processo x
+        # thread) que, em ambientes Windows com verificação de aplicativos
+        # (Application Control/antivírus) por processo, é contraproducente —
+        # o overhead de spawn de processo supera o ganho de paralelismo.
+        n_jobs=1,
         error_score="raise",
     )
 

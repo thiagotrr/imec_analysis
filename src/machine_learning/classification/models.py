@@ -106,6 +106,12 @@ def build_classifier_registry(
             verbose=False,
             random_seed=random_state,
             loss_function="MultiClass" if n_classes > 2 else "Logloss",
+            # Evita gravar `catboost_info/` (snapshots/logs de treino): além de
+            # sujar o repositório a cada execução, gravações concorrentes desse
+            # diretório causaram `UnicodeDecodeError` intermitente no Windows
+            # quando o CatBoost é treinado várias vezes em sequência (ex.:
+            # múltiplos cenários de resampling/CV na mesma execução).
+            allow_writing_files=False,
             **resolved_catboost_params,
         )
     if XGBClassifier is not None:

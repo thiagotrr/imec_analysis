@@ -261,10 +261,17 @@ def save_class_distribution_artifacts(
     distribution.to_csv(csv_path, index=False)
     distribution.to_json(json_path, orient="records", indent=2, force_ascii=False)
 
+    has_tier = "tier" in distribution.columns
+    tier_palette = {"A": "#0f766e", "B": "#2563eb", "C": "#d97706", "D": "#9ca3af"}
+
     ordered = distribution.sort_values("count", ascending=True)
     figure_height = max(4.0, 0.35 * len(ordered))
     figure, axis = plt.subplots(figsize=(9, figure_height))
-    sns.barplot(data=ordered, x="count", y="class", ax=axis, color="#0f766e")
+    if has_tier:
+        sns.barplot(data=ordered, x="count", y="class", hue="tier", palette=tier_palette, dodge=False, ax=axis)
+        axis.legend(title="Camada", loc="lower right")
+    else:
+        sns.barplot(data=ordered, x="count", y="class", ax=axis, color="#0f766e")
     axis.set_xlabel("Quantidade de registros")
     axis.set_ylabel(target_column)
     axis.set_title(f"Distribuição de classes de {target_column} ({stage})")
@@ -276,10 +283,12 @@ def save_class_distribution_artifacts(
         distribution.sort_values("count", ascending=False),
         x="class",
         y="count",
+        color="tier" if has_tier else None,
+        color_discrete_map=tier_palette if has_tier else None,
         hover_data=["percentage"],
         title=f"Distribuição de classes de {target_column} ({stage})",
     )
-    bar_figure.update_layout(xaxis_title=target_column, yaxis_title="Quantidade de registros")
+    bar_figure.update_layout(xaxis_title=target_column, yaxis_title="Quantidade de registros", legend_title_text="Camada")
     bar_figure.write_html(html_path)
 
     return {

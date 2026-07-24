@@ -22,17 +22,28 @@ def test_full_pipeline_with_default_pca_resampling_cv_and_search(
     funciona sem erros; as métricas seguem sem valor de negócio real (ver
     docs/task05_evolucao_pipeline_modelos.md).
     """
+    # min_class_percentage=15.0 (camada "A") fixado explicitamente: este teste
+    # valida a integração PCA + resampling + CV + busca de hiperparâmetros,
+    # não o sistema de camadas em si (ver test_feature_engineering_class_distribution.py).
+    # Com o valor padrão atual (camada "C", ~0.1%) o dataset sintético retém
+    # classes rarissimas de propósito (para simular a cauda real) com poucas
+    # amostras por fold de CV — cenário em que SMOTE/ADASYN falham por design
+    # (n_neighbors > amostras disponíveis), não por bug: é exatamente a
+    # limitação de confiabilidade documentada em
+    # docs/task05_analise_data_augmentation.md para classes de baixo volume.
     run_preparation_workflow(
         data_frame=synthetic_dataset,
         target_column=TARGET_COLUMN,
         output_dir=tmp_path,
         open_browser=False,
         enable_exploration=False,
+        min_class_percentage=15.0,
     )
 
     config = ClassificationConfig(
         target_column=TARGET_COLUMN,
         output_dir=tmp_path,
+        min_class_percentage=15.0,
         resampling_strategies=(None, "smote", "adasyn"),
         enable_cross_validation=True,
         cross_validation_folds=3,

@@ -43,6 +43,9 @@ model/**/*.html
 model/**/*.png
 model/**/*.csv
 
+# Dados de negócio sensíveis (dataset real)
+*.xlsx
+
 # Unit test / coverage reports
 htmlcov/
 .tox/

@@ -12,6 +12,7 @@ from machine_learning.classification import (
 )
 from machine_learning.classification.models import DEFAULT_CLASSIFIER_ORDER
 from machine_learning.data_preparation import prepare_training_dataset
+from machine_learning.feature_engineering import MIN_CLASS_PERCENTAGE_THRESHOLD
 
 from conftest import TARGET_COLUMN
 
@@ -58,7 +59,13 @@ def test_run_classification_workflow_end_to_end_without_resampling(prepared_data
     assert result.artifacts.details_path.exists()
     with result.artifacts.details_path.open(encoding="utf-8") as file_obj:
         details = json.load(file_obj)
-    assert details["split"]["min_class_percentage"] == pytest.approx(15.0)
+    # A preparação (fixture `prepared_dataset_dir`) já purgou o dataset a 15%
+    # (camada "A"); a etapa de classificação aplica seu próprio expurgo por
+    # cima usando o valor padrão atual (alinhado à camada "C"), que aqui não
+    # remove nada adicional pois as 3 classes remanescentes já dominam o
+    # dataset preparado.
+    assert details["split"]["min_class_percentage"] == pytest.approx(MIN_CLASS_PERCENTAGE_THRESHOLD)
+    assert details["split"]["training_class_count"] == 3
 
 
 def test_run_classification_workflow_with_resampling_scenarios(prepared_dataset_dir: Path) -> None:

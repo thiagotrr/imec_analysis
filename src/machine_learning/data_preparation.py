@@ -26,11 +26,13 @@ try:
         MIN_CLASS_PERCENTAGE_THRESHOLD,
         DatasetProfile,
         FeatureRecommendations,
+        build_class_weight_registry,
         compute_class_distribution,
         filter_classes_by_percentage,
         get_analysis_bundle,
         get_feature_recommendations,
         load_dataset,
+        qualify_class_distribution,
         resolve_dataset_path,
     )
 except ImportError:
@@ -44,11 +46,13 @@ except ImportError:
         MIN_CLASS_PERCENTAGE_THRESHOLD,
         DatasetProfile,
         FeatureRecommendations,
+        build_class_weight_registry,
         compute_class_distribution,
         filter_classes_by_percentage,
         get_analysis_bundle,
         get_feature_recommendations,
         load_dataset,
+        qualify_class_distribution,
         resolve_dataset_path,
     )
 
@@ -58,6 +62,7 @@ DEFAULT_PIPELINE_FILENAME = "preprocessing_pipeline.pkl"
 DEFAULT_TARGET_ENCODER_FILENAME = "target_encoder.pkl"
 DEFAULT_METADATA_FILENAME = "preparation_metadata.json"
 DEFAULT_PREPARED_DATASET_FILENAME = "prepared_training_dataset.csv"
+DEFAULT_CLASS_WEIGHT_REGISTRY_FILENAME = "class_weight_registry.json"
 DEFAULT_CORRELATION_THRESHOLD = 0.95
 DEFAULT_SPARSE_COMPONENTS = 128
 
@@ -69,6 +74,7 @@ class PreparationArtifacts:
     metadata_path: Path
     prepared_dataset_path: Path
     target_encoder_path: Path | None = None
+    class_weight_registry_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -395,12 +401,36 @@ def get_model_dir(output_dir: str | Path | None = None) -> Path:
     return Path(output_dir) if output_dir is not None else DEFAULT_MODEL_DIR
 
 
+def save_class_weight_registry(
+    registry: dict[str, object],
+    output_dir: str | Path | None = None,
+) -> Path:
+    """Persiste o "registro de pesos e qualificação de classes" (ver ``feature_engineering.build_class_weight_registry``).
+
+    Salvo em ``model/class_weight_registry.json`` (não em ``model/exploration``,
+    que é tratado como saída descartável no ``.gitignore``): este é um
+    artefato estável da aplicação, versionado no repositório, pensado para
+    ser consumido por uma futura camada de inferência/API.
+    """
+    model_dir = get_model_dir(output_dir)
+    model_dir.mkdir(parents=True, exist_ok=True)
+    registry_path = model_dir / DEFAULT_CLASS_WEIGHT_REGISTRY_FILENAME
+    payload = {
+        "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        **registry,
+    }
+    with registry_path.open("w", encoding="utf-8") as file_obj:
+        json.dump(payload, file_obj, indent=2, ensure_ascii=False, default=str)
+    return registry_path
+
+
 def save_preprocessing_artifacts(
     prepared_dataset: pd.DataFrame,
     pipeline: Pipeline,
     metadata: dict[str, object],
     target_encoder: LabelEncoder | None = None,
     output_dir: str | Path | None = None,
+    class_weight_registry: dict[str, object] | None = None,
 ) -> PreparationArtifacts:
     model_dir = get_model_dir(output_dir)
     model_dir.mkdir(parents=True, exist_ok=True)
@@ -409,6 +439,9 @@ def save_preprocessing_artifacts(
     metadata_path = model_dir / DEFAULT_METADATA_FILENAME
     prepared_dataset_path = model_dir / DEFAULT_PREPARED_DATASET_FILENAME
     target_encoder_path = model_dir / DEFAULT_TARGET_ENCODER_FILENAME if target_encoder is not None else None
+    class_weight_registry_path = (
+        save_class_weight_registry(class_weight_registry, output_dir) if class_weight_registry is not None else None
+    )
 
     metadata_to_save = dict(metadata)
     metadata_to_save["artifacts"] = {
@@ -416,6 +449,7 @@ def save_preprocessing_artifacts(
         "metadata_path": str(metadata_path),
         "prepared_dataset_path": str(prepared_dataset_path),
         "target_encoder_path": str(target_encoder_path) if target_encoder_path is not None else None,
+        "class_weight_registry_path": str(class_weight_registry_path) if class_weight_registry_path is not None else None,
     }
 
     with pipeline_path.open("wb") as file_obj:
@@ -436,6 +470,7 @@ def save_preprocessing_artifacts(
         metadata_path=metadata_path,
         prepared_dataset_path=prepared_dataset_path,
         target_encoder_path=target_encoder_path,
+        class_weight_registry_path=class_weight_registry_path,
     )
 
 
@@ -505,7 +540,10 @@ def prepare_training_dataset(
     cleaned_frame = deduplicated_frame.dropna(subset=[target_column]).reset_index(drop=True)
 
     # Distribuição de classes do target ANTES de qualquer expurgo, para documentar o "antes".
-    class_distribution_before = compute_class_distribution(cleaned_frame[target_column])
+    # Já qualificada por camada (A/B/C/D) para que os artefatos "antes/depois" (CSV/JSON/PNG)
+    # tragam a camada de cada classe, de forma escalável e auditável (ver
+    # feature_engineering.CLASS_TIER_THRESHOLDS).
+    class_distribution_before = qualify_class_distribution(compute_class_distribution(cleaned_frame[target_column]))
     if enable_class_purge:
         training_frame, class_purge_metadata = filter_classes_by_percentage(
             cleaned_frame, target_column, min_percentage=min_class_percentage
@@ -513,7 +551,14 @@ def prepare_training_dataset(
     else:
         training_frame = cleaned_frame
         class_purge_metadata = None
-    class_distribution_after = compute_class_distribution(training_frame[target_column])
+    class_distribution_after = qualify_class_distribution(compute_class_distribution(training_frame[target_column]))
+
+    # Registro de pesos/qualificação das classes retidas (camadas A/B/C) — insumo
+    # estável da aplicação, independente de `enable_class_purge`/`persist_artifacts`
+    # (sempre computado a partir da distribuição completa, antes do expurgo).
+    class_weight_registry = build_class_weight_registry(
+        cleaned_frame, target_column, min_percentage=min_class_percentage
+    )
 
     class_distribution_artifact_paths: dict[str, dict[str, str]] = {}
     if persist_artifacts:
@@ -592,6 +637,7 @@ def prepare_training_dataset(
             **(class_purge_metadata or {}),
             "artifact_paths": class_distribution_artifact_paths or None,
         },
+        "class_weight_registry": class_weight_registry,
         "dropped_columns": {
             "heuristic": heuristic_drop_columns,
             "constant": constant_columns,
@@ -638,12 +684,16 @@ def prepare_training_dataset(
             metadata=metadata,
             target_encoder=target_encoder,
             output_dir=output_dir,
+            class_weight_registry=class_weight_registry,
         )
         metadata["artifacts"] = {
             "pipeline_path": str(artifacts.pipeline_path),
             "metadata_path": str(artifacts.metadata_path),
             "prepared_dataset_path": str(artifacts.prepared_dataset_path),
             "target_encoder_path": str(artifacts.target_encoder_path) if artifacts.target_encoder_path else None,
+            "class_weight_registry_path": (
+                str(artifacts.class_weight_registry_path) if artifacts.class_weight_registry_path else None
+            ),
         }
 
     return PreparedDatasetResult(

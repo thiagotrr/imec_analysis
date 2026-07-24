@@ -88,7 +88,10 @@ def run_hyperparameter_search(
         scoring=scoring,
         cv=cross_validator,
         random_state=random_state,
-        n_jobs=-1,
+        # n_jobs=1: ver racional em cross_validation.run_stratified_cross_validation
+        # (evitar paralelismo aninhado processo x thread; CatBoost/XGBoost já usam
+        # threads internamente para o treino de cada fit individual).
+        n_jobs=1,
         refit=True,
         error_score="raise",
     )

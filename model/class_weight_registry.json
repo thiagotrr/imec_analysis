@@ -1,0 +1,125 @@
+{
+  "created_at": "2026-07-24T22:37:02+00:00",
+  "target_column": "CODRSTAFER",
+  "min_class_percentage": 0.1,
+  "tier_thresholds": {
+    "A": 15.0,
+    "B": 1.0,
+    "C": 0.1
+  },
+  "discard_tier_label": "D",
+  "total_rows": 35318,
+  "retained_rows": 35053,
+  "retained_rows_percentage": 99.2497,
+  "retained_class_count": 14,
+  "discarded_class_count": 36,
+  "discarded_rows": 265,
+  "classes": [
+    {
+      "class": "10",
+      "count": 16280,
+      "percentage": 46.0955,
+      "tier": "A",
+      "weight": 0.153795
+    },
+    {
+      "class": "1",
+      "count": 11950,
+      "percentage": 33.8354,
+      "tier": "A",
+      "weight": 0.209522
+    },
+    {
+      "class": "165",
+      "count": 2090,
+      "percentage": 5.9177,
+      "tier": "B",
+      "weight": 1.197984
+    },
+    {
+      "class": "106",
+      "count": 1591,
+      "percentage": 4.5048,
+      "tier": "B",
+      "weight": 1.573718
+    },
+    {
+      "class": "111",
+      "count": 1053,
+      "percentage": 2.9815,
+      "tier": "B",
+      "weight": 2.377764
+    },
+    {
+      "class": "121",
+      "count": 673,
+      "percentage": 1.9055,
+      "tier": "B",
+      "weight": 3.720335
+    },
+    {
+      "class": "104",
+      "count": 540,
+      "percentage": 1.529,
+      "tier": "B",
+      "weight": 4.63664
+    },
+    {
+      "class": "102",
+      "count": 302,
+      "percentage": 0.8551,
+      "tier": "C",
+      "weight": 8.290681
+    },
+    {
+      "class": "109",
+      "count": 181,
+      "percentage": 0.5125,
+      "tier": "C",
+      "weight": 13.83307
+    },
+    {
+      "class": "115",
+      "count": 137,
+      "percentage": 0.3879,
+      "tier": "C",
+      "weight": 18.275808
+    },
+    {
+      "class": "146",
+      "count": 94,
+      "percentage": 0.2662,
+      "tier": "C",
+      "weight": 26.636018
+    },
+    {
+      "class": "145",
+      "count": 57,
+      "percentage": 0.1614,
+      "tier": "C",
+      "weight": 43.926065
+    },
+    {
+      "class": "101",
+      "count": 55,
+      "percentage": 0.1557,
+      "tier": "C",
+      "weight": 45.523377
+    },
+    {
+      "class": "107",
+      "count": 50,
+      "percentage": 0.1416,
+      "tier": "C",
+      "weight": 50.075714
+    }
+  ],
+  "discarded_summary_by_tier": [
+    {
+      "tier": "D",
+      "class_count": 36,
+      "total_rows": 265,
+      "total_percentage": 0.7505
+    }
+  ]
+}
