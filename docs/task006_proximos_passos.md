@@ -67,13 +67,13 @@ class InspecaoMedidorBase(BaseModel):
     # validações comuns (tipos, ranges) aqui
 ```
 
-### 2.1. Contrato "todas as features" (`FeaturesCompletasRequest`)
+### 2.1. Contrato "todas as features" (`LaudoCompletoRequest`)
 
 - Espelha **todas** as colunas de `resultado_laudo_afericao.xlsx` (exceto o target `CODRSTAFER`, que é o que se quer prever).
 - **Geração do contrato não deve ser manual**: criar um utilitário (`scripts/generate_pydantic_schema.py`) que leia o dataset (ou `preparation_metadata.json`) via `feature_engineering.build_dataset_profile` e gere os campos Pydantic automaticamente (nome, tipo inferido, nullable conforme `null_pct`), evitando divergência entre o schema da API e o dataset real ao longo do tempo.
 - Uso: cenário em que o consumidor da API já possui o laudo completo e não quer se preocupar em saber quais colunas o modelo de fato usa.
 
-### 2.2. Contrato "features do modelo" (`FeaturesModeloRequest`)
+### 2.2. Contrato "features do modelo" (`LaudoSinteticoRequest`)
 
 - Mesma base do item 2.1, mas **excluindo** as colunas listadas em `MANUALLY_REMOVED_FEATURES` (`src/machine_learning/feature_engineering.py`) — ou seja, exatamente o conjunto de colunas que o `preprocessing_pipeline.pkl` espera antes do drop heurístico/constante/correlação (esses três últimos são aplicados automaticamente pelo pipeline, não pelo contrato).
 - Gerado pelo mesmo utilitário do item 2.1, com um parâmetro `excluded_columns=MANUALLY_REMOVED_FEATURES` — garante que os dois contratos nunca fiquem dessincronizados manualmente.
@@ -99,8 +99,8 @@ Todos em `src/api/`, seguindo o padrão já estabelecido em `main.py` (FastAPI +
 
 | Método | Rota | Request | Response | Descrição |
 |---|---|---|---|---|
-| `POST` | `/inspecao/completa` | `FeaturesCompletasRequest` | `InspecaoMedidorResponse` | Recebe todas as features do laudo (§2.1) |
-| `POST` | `/inspecao/modelo` | `FeaturesModeloRequest` | `InspecaoMedidorResponse` | Recebe apenas as features usadas pelo modelo (§2.2) |
+| `POST` | `/inspecao/laudo_completo` | `LaudoCompletoRequest` | `InspecaoMedidorResponse` (a definir) | Recebe todas as features do laudo (§2.1) |
+| `POST` | `/inspecao/laudo_sintetico` | `LaudoSinteticoRequest` | `InspecaoMedidorResponse` (a definir) | Recebe apenas as features usadas pelo modelo (§2.2) |
 | `POST` | `/inspecao/csv` | `UploadFile` (CSV) | `list[InspecaoMedidorResponse]` | Upload em lote (§2.3) |
 | `GET` | `/inspecao/modelos` | — | `ModeloInfoResponse` (novo) | Metadados do(s) modelo(s) compilado(s) ativos: algoritmo, versão, métricas, camadas suportadas — útil para consumidores validarem compatibilidade antes de chamar os endpoints acima |
 
@@ -112,7 +112,7 @@ Para esta task, cada handler deve:
 ### Documentação obrigatória por endpoint (Swagger/OpenAPI)
 
 - `summary` e `description` claros (como já feito no endpoint existente).
-- `responses={422: {...}, 500: {...}}` documentando erros de validação e falha de inferência.
+- `responses={422: {...}, 500: {...}}` documentando principais erros de validação e falha de inferência.
 - Exemplos de request/response via `json_schema_extra` em cada modelo Pydantic (não apenas no endpoint).
 - Agrupar as 4 rotas na mesma `tag` (`"Inspeção de Medidor de Consumo"`) para aparecerem juntas no Swagger UI.
 
