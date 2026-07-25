@@ -16,25 +16,43 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import FunctionTransformer, LabelEncoder, OneHotEncoder, StandardScaler
 
 try:
-    from .data_exploration import compute_numeric_correlation_matrix, generate_exploration_artifacts
+    from .data_exploration import (
+        compute_numeric_correlation_matrix,
+        generate_exploration_artifacts,
+        save_class_distribution_artifacts,
+    )
     from .feature_engineering import (
         DEFAULT_TARGET_COLUMN,
+        MIN_CLASS_PERCENTAGE_THRESHOLD,
         DatasetProfile,
         FeatureRecommendations,
+        build_class_weight_registry,
+        compute_class_distribution,
+        filter_classes_by_percentage,
         get_analysis_bundle,
         get_feature_recommendations,
         load_dataset,
+        qualify_class_distribution,
         resolve_dataset_path,
     )
 except ImportError:
-    from data_exploration import compute_numeric_correlation_matrix, generate_exploration_artifacts
+    from data_exploration import (
+        compute_numeric_correlation_matrix,
+        generate_exploration_artifacts,
+        save_class_distribution_artifacts,
+    )
     from feature_engineering import (
         DEFAULT_TARGET_COLUMN,
+        MIN_CLASS_PERCENTAGE_THRESHOLD,
         DatasetProfile,
         FeatureRecommendations,
+        build_class_weight_registry,
+        compute_class_distribution,
+        filter_classes_by_percentage,
         get_analysis_bundle,
         get_feature_recommendations,
         load_dataset,
+        qualify_class_distribution,
         resolve_dataset_path,
     )
 
@@ -44,6 +62,7 @@ DEFAULT_PIPELINE_FILENAME = "preprocessing_pipeline.pkl"
 DEFAULT_TARGET_ENCODER_FILENAME = "target_encoder.pkl"
 DEFAULT_METADATA_FILENAME = "preparation_metadata.json"
 DEFAULT_PREPARED_DATASET_FILENAME = "prepared_training_dataset.csv"
+DEFAULT_CLASS_WEIGHT_REGISTRY_FILENAME = "class_weight_registry.json"
 DEFAULT_CORRELATION_THRESHOLD = 0.95
 DEFAULT_SPARSE_COMPONENTS = 128
 
@@ -55,6 +74,7 @@ class PreparationArtifacts:
     metadata_path: Path
     prepared_dataset_path: Path
     target_encoder_path: Path | None = None
+    class_weight_registry_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -197,7 +217,10 @@ def _build_column_transformer(
                 Pipeline(
                     steps=[
                         ("imputer", SimpleImputer(strategy="constant", fill_value="__missing__")),
-                        ("stringify", FunctionTransformer(_stringify_values, validate=False)),
+                        (
+                            "stringify",
+                            FunctionTransformer(_stringify_values, validate=False, feature_names_out="one-to-one"),
+                        ),
                         ("encoder", _build_one_hot_encoder()),
                     ]
                 ),
@@ -284,9 +307,15 @@ def fit_preprocessor(
         enable_pca=False,
         pca_components=pca_components,
     )
+    # Mantemos `transformed_probe` no formato original (esparso ou denso)
+    # retornado pelo `ColumnTransformer`: `_build_dimensionality_reducer`
+    # decide entre `TruncatedSVD` (para entradas esparsas, ex.: quando há
+    # colunas categóricas com one-hot encoding) e `PCA` (para entradas densas)
+    # justamente com base em `sparse.issparse(transformed_probe)`. Densificar
+    # aqui antes dessa checagem faria a decisão sempre cair em `PCA`, que não
+    # suporta `n_components` fracionário (variância explicada) em entradas
+    # esparsas — foi exatamente o bug corrigido nesta revisão.
     transformed_probe = probe_pipeline.fit_transform(feature_frame)
-    if hasattr(transformed_probe, "toarray"):
-        transformed_probe = transformed_probe.toarray()
 
     transformed_width = transformed_probe.shape[1]
     if not enable_pca or transformed_width <= 1:
@@ -317,11 +346,29 @@ def _get_transformed_feature_names(pipeline: Pipeline, transformed_width: int) -
     return [f"feature_{index:03d}" for index in range(1, transformed_width + 1)]
 
 
+def _sparse_matrix_to_frame(transformed: object, index: pd.Index, feature_names: list[str]) -> pd.DataFrame:
+    # `pd.DataFrame.sparse.from_spmatrix` usa `fill_value=NaN` por padrão nesta
+    # versão do pandas, o que representa incorretamente o "zero implícito" da
+    # matriz esparsa (ex.: categoria não-selecionada do one-hot encoding) como
+    # valor ausente — e `DataFrame.astype(SparseDtype(..., fill_value=0.0))`
+    # não corrige isso, pois a igualdade de `SparseDtype` ignora `fill_value`
+    # e o astype vira um no-op. Construímos cada coluna explicitamente com
+    # `fill_value=0.0` para preservar a esparsidade sem introduzir NaN
+    # espúrios (o que quebraria consumidores como SMOTE/ADASYN e o round-trip
+    # via CSV).
+    csc_matrix = transformed.tocsc()
+    sparse_columns = {
+        name: pd.arrays.SparseArray(csc_matrix.getcol(position).toarray().ravel(), fill_value=0.0)
+        for position, name in enumerate(feature_names)
+    }
+    return pd.DataFrame(sparse_columns, index=index)
+
+
 def transform_dataset(feature_frame: pd.DataFrame, pipeline: Pipeline) -> pd.DataFrame:
     transformed = pipeline.transform(feature_frame)
     if sparse.issparse(transformed):
         feature_names = _get_transformed_feature_names(pipeline, transformed.shape[1])
-        return pd.DataFrame.sparse.from_spmatrix(transformed, index=feature_frame.index, columns=feature_names)
+        return _sparse_matrix_to_frame(transformed, feature_frame.index, feature_names)
 
     if hasattr(transformed, "toarray"):
         transformed = transformed.toarray()
@@ -354,12 +401,36 @@ def get_model_dir(output_dir: str | Path | None = None) -> Path:
     return Path(output_dir) if output_dir is not None else DEFAULT_MODEL_DIR
 
 
+def save_class_weight_registry(
+    registry: dict[str, object],
+    output_dir: str | Path | None = None,
+) -> Path:
+    """Persiste o "registro de pesos e qualificação de classes" (ver ``feature_engineering.build_class_weight_registry``).
+
+    Salvo em ``model/class_weight_registry.json`` (não em ``model/exploration``,
+    que é tratado como saída descartável no ``.gitignore``): este é um
+    artefato estável da aplicação, versionado no repositório, pensado para
+    ser consumido por uma futura camada de inferência/API.
+    """
+    model_dir = get_model_dir(output_dir)
+    model_dir.mkdir(parents=True, exist_ok=True)
+    registry_path = model_dir / DEFAULT_CLASS_WEIGHT_REGISTRY_FILENAME
+    payload = {
+        "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        **registry,
+    }
+    with registry_path.open("w", encoding="utf-8") as file_obj:
+        json.dump(payload, file_obj, indent=2, ensure_ascii=False, default=str)
+    return registry_path
+
+
 def save_preprocessing_artifacts(
     prepared_dataset: pd.DataFrame,
     pipeline: Pipeline,
     metadata: dict[str, object],
     target_encoder: LabelEncoder | None = None,
     output_dir: str | Path | None = None,
+    class_weight_registry: dict[str, object] | None = None,
 ) -> PreparationArtifacts:
     model_dir = get_model_dir(output_dir)
     model_dir.mkdir(parents=True, exist_ok=True)
@@ -368,6 +439,9 @@ def save_preprocessing_artifacts(
     metadata_path = model_dir / DEFAULT_METADATA_FILENAME
     prepared_dataset_path = model_dir / DEFAULT_PREPARED_DATASET_FILENAME
     target_encoder_path = model_dir / DEFAULT_TARGET_ENCODER_FILENAME if target_encoder is not None else None
+    class_weight_registry_path = (
+        save_class_weight_registry(class_weight_registry, output_dir) if class_weight_registry is not None else None
+    )
 
     metadata_to_save = dict(metadata)
     metadata_to_save["artifacts"] = {
@@ -375,6 +449,7 @@ def save_preprocessing_artifacts(
         "metadata_path": str(metadata_path),
         "prepared_dataset_path": str(prepared_dataset_path),
         "target_encoder_path": str(target_encoder_path) if target_encoder_path is not None else None,
+        "class_weight_registry_path": str(class_weight_registry_path) if class_weight_registry_path is not None else None,
     }
 
     with pipeline_path.open("wb") as file_obj:
@@ -395,6 +470,7 @@ def save_preprocessing_artifacts(
         metadata_path=metadata_path,
         prepared_dataset_path=prepared_dataset_path,
         target_encoder_path=target_encoder_path,
+        class_weight_registry_path=class_weight_registry_path,
     )
 
 
@@ -409,6 +485,8 @@ def run_preparation_workflow(
     persist_artifacts: bool = True,
     enable_exploration: bool = True,
     open_browser: bool = True,
+    enable_class_purge: bool = True,
+    min_class_percentage: float = MIN_CLASS_PERCENTAGE_THRESHOLD,
 ) -> PreparationWorkflowResult:
     result = prepare_training_dataset(
         data_frame=data_frame,
@@ -420,6 +498,8 @@ def run_preparation_workflow(
         pca_components=pca_components,
         persist_artifacts=persist_artifacts,
         enable_exploration=enable_exploration,
+        enable_class_purge=enable_class_purge,
+        min_class_percentage=min_class_percentage,
     )
 
     dashboard_path_raw = result.metadata.get("exploration", {}).get("dashboard_path")
@@ -444,6 +524,8 @@ def prepare_training_dataset(
     pca_components: float | int = 0.95,
     persist_artifacts: bool = True,
     enable_exploration: bool = True,
+    enable_class_purge: bool = True,
+    min_class_percentage: float = MIN_CLASS_PERCENTAGE_THRESHOLD,
 ) -> PreparedDatasetResult:
     source_path = resolve_dataset_path(dataset_path)
     raw_frame = load_dataset(source_path) if data_frame is None else clone_dataset(data_frame)
@@ -456,6 +538,36 @@ def prepare_training_dataset(
     deduplicated_frame = _remove_duplicate_rows(normalized_frame)
     target_null_rows_removed = int(deduplicated_frame[target_column].isna().sum())
     cleaned_frame = deduplicated_frame.dropna(subset=[target_column]).reset_index(drop=True)
+
+    # Distribuição de classes do target ANTES de qualquer expurgo, para documentar o "antes".
+    # Já qualificada por camada (A/B/C/D) para que os artefatos "antes/depois" (CSV/JSON/PNG)
+    # tragam a camada de cada classe, de forma escalável e auditável (ver
+    # feature_engineering.CLASS_TIER_THRESHOLDS).
+    class_distribution_before = qualify_class_distribution(compute_class_distribution(cleaned_frame[target_column]))
+    if enable_class_purge:
+        training_frame, class_purge_metadata = filter_classes_by_percentage(
+            cleaned_frame, target_column, min_percentage=min_class_percentage
+        )
+    else:
+        training_frame = cleaned_frame
+        class_purge_metadata = None
+    class_distribution_after = qualify_class_distribution(compute_class_distribution(training_frame[target_column]))
+
+    # Registro de pesos/qualificação das classes retidas (camadas A/B/C) — insumo
+    # estável da aplicação, independente de `enable_class_purge`/`persist_artifacts`
+    # (sempre computado a partir da distribuição completa, antes do expurgo).
+    class_weight_registry = build_class_weight_registry(
+        cleaned_frame, target_column, min_percentage=min_class_percentage
+    )
+
+    class_distribution_artifact_paths: dict[str, dict[str, str]] = {}
+    if persist_artifacts:
+        class_distribution_artifact_paths["before_purge"] = save_class_distribution_artifacts(
+            class_distribution_before, output_dir, target_column, stage="before_purge"
+        )
+        class_distribution_artifact_paths["after_purge"] = save_class_distribution_artifacts(
+            class_distribution_after, output_dir, target_column, stage="after_purge"
+        )
 
     profile, recommendations = get_analysis_bundle(
         cleaned_frame,
@@ -474,10 +586,10 @@ def prepare_training_dataset(
 
     heuristic_drop_columns = [
         column for column in recommendations.cols_to_drop
-        if column in cleaned_frame.columns and column != target_column
+        if column in training_frame.columns and column != target_column
     ]
 
-    feature_frame = cleaned_frame.drop(
+    feature_frame = training_frame.drop(
         columns=heuristic_drop_columns + [target_column],
         errors="ignore",
     ).copy()
@@ -488,7 +600,7 @@ def prepare_training_dataset(
     )
 
     pipeline_recommendations = get_feature_recommendations(
-        pd.concat([feature_frame, cleaned_frame[[target_column]]], axis=1),
+        pd.concat([feature_frame, training_frame[[target_column]]], axis=1),
         target_column=target_column,
     )
     pipeline, feature_groups = fit_preprocessor(
@@ -499,7 +611,7 @@ def prepare_training_dataset(
     )
 
     transformed_features = transform_dataset(feature_frame, pipeline)
-    transformed_target, target_encoder = _prepare_target_series(cleaned_frame[target_column].copy())
+    transformed_target, target_encoder = _prepare_target_series(training_frame[target_column].copy())
 
     prepared_dataset = transformed_features.copy()
     prepared_dataset.insert(0, target_column, transformed_target.to_numpy())
@@ -518,6 +630,14 @@ def prepare_training_dataset(
         "transformed_shape": list(transformed_features.shape),
         "duplicate_rows_removed": int(original_shape[0] - deduplicated_frame.shape[0]),
         "target_null_rows_removed": target_null_rows_removed,
+        "training_shape": list(training_frame.shape),
+        "class_purge": {
+            "enabled": enable_class_purge,
+            "min_class_percentage": min_class_percentage,
+            **(class_purge_metadata or {}),
+            "artifact_paths": class_distribution_artifact_paths or None,
+        },
+        "class_weight_registry": class_weight_registry,
         "dropped_columns": {
             "heuristic": heuristic_drop_columns,
             "constant": constant_columns,
@@ -564,12 +684,16 @@ def prepare_training_dataset(
             metadata=metadata,
             target_encoder=target_encoder,
             output_dir=output_dir,
+            class_weight_registry=class_weight_registry,
         )
         metadata["artifacts"] = {
             "pipeline_path": str(artifacts.pipeline_path),
             "metadata_path": str(artifacts.metadata_path),
             "prepared_dataset_path": str(artifacts.prepared_dataset_path),
             "target_encoder_path": str(artifacts.target_encoder_path) if artifacts.target_encoder_path else None,
+            "class_weight_registry_path": (
+                str(artifacts.class_weight_registry_path) if artifacts.class_weight_registry_path else None
+            ),
         }
 
     return PreparedDatasetResult(
@@ -603,6 +727,16 @@ def print_preparation_summary(result: PreparedDatasetResult) -> None:
     print(f"Colunas removidas por heurística: {len(result.dropped_columns['heuristic'])}")
     print(f"Colunas removidas por constância: {len(result.dropped_columns['constant'])}")
     print(f"Colunas removidas por correlação: {len(result.dropped_columns['high_correlation'])}")
+
+    class_purge_metadata = result.metadata.get("class_purge", {})
+    if class_purge_metadata.get("enabled"):
+        print(
+            "Expurgo de classes de baixa representatividade "
+            f"(limiar={class_purge_metadata.get('min_class_percentage')}%): "
+            f"{class_purge_metadata.get('original_class_count')} -> "
+            f"{class_purge_metadata.get('retained_class_count')} classes, "
+            f"{class_purge_metadata.get('retained_rows_percentage')}% das linhas retidas."
+        )
 
     reduction_metadata = result.metadata["dimensionality_reduction"]
     if reduction_metadata["enabled"]:

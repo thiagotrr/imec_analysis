@@ -1,5 +1,5 @@
 {
-  "dataset_path": "e:\\Repos\\imec_analysis\\src\\machine_learning\\resultado_laudo_afericao.xlsx",
+  "dataset_path": "D:\\Repos\\Energisa\\imec_analysis\\src\\machine_learning\\resultado_laudo_afericao.xlsx",
   "target_column": "CODRSTAFER",
   "numeric_columns": [
     "NUMOSM",
@@ -119,33 +119,33 @@
     "VLRLTR_MAN_KVARH",
     "SEQ_NUMLAUDO"
   ],
-  "dashboard_path": "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\exploration_dashboard.html",
+  "dashboard_path": "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\exploration_dashboard.html",
   "files_by_kind": {
     "histogram_png": [
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_01.png",
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_02.png",
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_03.png"
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\histogram_page_01.png",
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\histogram_page_02.png",
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\histogram_page_03.png"
     ],
     "histogram_html": [
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_01.html",
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_02.html",
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_03.html"
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\histogram_page_01.html",
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\histogram_page_02.html",
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\histogram_page_03.html"
     ],
     "scatter_png": [
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_01.png",
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_02.png",
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_03.png"
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_01.png",
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_02.png",
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_03.png"
     ],
     "scatter_html": [
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_01.html",
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_02.html",
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_03.html"
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_01.html",
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_02.html",
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_03.html"
     ],
     "correlation_png": [
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\correlation_matrix.png"
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\correlation_matrix.png"
     ],
     "correlation_html": [
-      "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\correlation_matrix.html"
+      "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\correlation_matrix.html"
     ]
   }
 }

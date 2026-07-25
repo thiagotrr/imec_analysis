@@ -20,7 +20,7 @@ O pacote [src/machine_learning](src/machine_learning) agora separa três etapas:
 
 - [src/machine_learning/feature_engineering.py](src/machine_learning/feature_engineering.py): perfilamento do dataset e recomendações heurísticas de colunas.
 - [src/machine_learning/data_preparation.py](src/machine_learning/data_preparation.py): limpeza, imputação, encoding, scaling, redução de dimensionalidade e persistência dos artefatos de pré-processamento.
-- [src/machine_learning/classification](src/machine_learning/classification): treino sequencial dos classificadores CatBoost, XGBoost, k-NN e SVM com cálculo e consolidação de métricas.
+- [src/machine_learning/classification](src/machine_learning/classification): treino sequencial dos classificadores do pipeline padrão — **CatBoost e XGBoost** — com cálculo e consolidação de métricas. k-NN e SVM continuam implementados em [`models.py`](src/machine_learning/classification/models.py) (`build_classifier_registry`) para uso experimental/comparativo, mas foram descontinuados do fluxo padrão (`DEFAULT_CLASSIFIER_ORDER`) por apresentarem desempenho inferior nesse problema; podem ser reativados informando `algorithm_order` em `ClassificationConfig`.
 
 Durante a preparação, o pipeline também gera artefatos de data exploration em [model/exploration](model/exploration):
 

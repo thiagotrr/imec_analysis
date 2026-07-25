@@ -1,6 +1,6 @@
 {
-  "created_at": "2026-07-21T13:38:36+00:00",
-  "source_path": "e:\\Repos\\imec_analysis\\src\\machine_learning\\resultado_laudo_afericao.xlsx",
+  "created_at": "2026-07-24T22:37:02+00:00",
+  "source_path": "D:\\Repos\\Energisa\\imec_analysis\\src\\machine_learning\\resultado_laudo_afericao.xlsx",
   "target_column": "CODRSTAFER",
   "original_shape": [
     35318,
@@ -11,15 +11,774 @@
     84
   ],
   "feature_shape_before_transform": [
-    35318,
+    35053,
     24
   ],
   "transformed_shape": [
-    35318,
+    35053,
     128
   ],
   "duplicate_rows_removed": 0,
   "target_null_rows_removed": 0,
+  "training_shape": [
+    35053,
+    84
+  ],
+  "class_purge": {
+    "enabled": true,
+    "min_class_percentage": 0.1,
+    "original_rows": 35318,
+    "retained_rows": 35053,
+    "removed_rows": 265,
+    "retained_rows_percentage": 99.2497,
+    "original_class_count": 50,
+    "retained_class_count": 14,
+    "removed_class_count": 36,
+    "removed_classes": [
+      {
+        "class": "100",
+        "count": 31,
+        "percentage": 0.0878,
+        "tier": "D"
+      },
+      {
+        "class": "134",
+        "count": 27,
+        "percentage": 0.0764,
+        "tier": "D"
+      },
+      {
+        "class": "169",
+        "count": 26,
+        "percentage": 0.0736,
+        "tier": "D"
+      },
+      {
+        "class": "105",
+        "count": 20,
+        "percentage": 0.0566,
+        "tier": "D"
+      },
+      {
+        "class": "108",
+        "count": 18,
+        "percentage": 0.051,
+        "tier": "D"
+      },
+      {
+        "class": "116",
+        "count": 15,
+        "percentage": 0.0425,
+        "tier": "D"
+      },
+      {
+        "class": "155",
+        "count": 13,
+        "percentage": 0.0368,
+        "tier": "D"
+      },
+      {
+        "class": "118",
+        "count": 11,
+        "percentage": 0.0311,
+        "tier": "D"
+      },
+      {
+        "class": "161",
+        "count": 10,
+        "percentage": 0.0283,
+        "tier": "D"
+      },
+      {
+        "class": "110",
+        "count": 9,
+        "percentage": 0.0255,
+        "tier": "D"
+      },
+      {
+        "class": "144",
+        "count": 9,
+        "percentage": 0.0255,
+        "tier": "D"
+      },
+      {
+        "class": "140",
+        "count": 8,
+        "percentage": 0.0227,
+        "tier": "D"
+      },
+      {
+        "class": "133",
+        "count": 8,
+        "percentage": 0.0227,
+        "tier": "D"
+      },
+      {
+        "class": "141",
+        "count": 8,
+        "percentage": 0.0227,
+        "tier": "D"
+      },
+      {
+        "class": "117",
+        "count": 8,
+        "percentage": 0.0227,
+        "tier": "D"
+      },
+      {
+        "class": "112",
+        "count": 6,
+        "percentage": 0.017,
+        "tier": "D"
+      },
+      {
+        "class": "156",
+        "count": 5,
+        "percentage": 0.0142,
+        "tier": "D"
+      },
+      {
+        "class": "163",
+        "count": 4,
+        "percentage": 0.0113,
+        "tier": "D"
+      },
+      {
+        "class": "136",
+        "count": 3,
+        "percentage": 0.0085,
+        "tier": "D"
+      },
+      {
+        "class": "127",
+        "count": 3,
+        "percentage": 0.0085,
+        "tier": "D"
+      },
+      {
+        "class": "175",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "129",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "147",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "103",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "122",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "128",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "113",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "132",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "123",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "153",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "143",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "150",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "114",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "148",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "176",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "162",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      }
+    ],
+    "before_distribution": [
+      {
+        "class": "10",
+        "count": 16280,
+        "percentage": 46.0955,
+        "tier": "A"
+      },
+      {
+        "class": "1",
+        "count": 11950,
+        "percentage": 33.8354,
+        "tier": "A"
+      },
+      {
+        "class": "165",
+        "count": 2090,
+        "percentage": 5.9177,
+        "tier": "B"
+      },
+      {
+        "class": "106",
+        "count": 1591,
+        "percentage": 4.5048,
+        "tier": "B"
+      },
+      {
+        "class": "111",
+        "count": 1053,
+        "percentage": 2.9815,
+        "tier": "B"
+      },
+      {
+        "class": "121",
+        "count": 673,
+        "percentage": 1.9055,
+        "tier": "B"
+      },
+      {
+        "class": "104",
+        "count": 540,
+        "percentage": 1.529,
+        "tier": "B"
+      },
+      {
+        "class": "102",
+        "count": 302,
+        "percentage": 0.8551,
+        "tier": "C"
+      },
+      {
+        "class": "109",
+        "count": 181,
+        "percentage": 0.5125,
+        "tier": "C"
+      },
+      {
+        "class": "115",
+        "count": 137,
+        "percentage": 0.3879,
+        "tier": "C"
+      },
+      {
+        "class": "146",
+        "count": 94,
+        "percentage": 0.2662,
+        "tier": "C"
+      },
+      {
+        "class": "145",
+        "count": 57,
+        "percentage": 0.1614,
+        "tier": "C"
+      },
+      {
+        "class": "101",
+        "count": 55,
+        "percentage": 0.1557,
+        "tier": "C"
+      },
+      {
+        "class": "107",
+        "count": 50,
+        "percentage": 0.1416,
+        "tier": "C"
+      },
+      {
+        "class": "100",
+        "count": 31,
+        "percentage": 0.0878,
+        "tier": "D"
+      },
+      {
+        "class": "134",
+        "count": 27,
+        "percentage": 0.0764,
+        "tier": "D"
+      },
+      {
+        "class": "169",
+        "count": 26,
+        "percentage": 0.0736,
+        "tier": "D"
+      },
+      {
+        "class": "105",
+        "count": 20,
+        "percentage": 0.0566,
+        "tier": "D"
+      },
+      {
+        "class": "108",
+        "count": 18,
+        "percentage": 0.051,
+        "tier": "D"
+      },
+      {
+        "class": "116",
+        "count": 15,
+        "percentage": 0.0425,
+        "tier": "D"
+      },
+      {
+        "class": "155",
+        "count": 13,
+        "percentage": 0.0368,
+        "tier": "D"
+      },
+      {
+        "class": "118",
+        "count": 11,
+        "percentage": 0.0311,
+        "tier": "D"
+      },
+      {
+        "class": "161",
+        "count": 10,
+        "percentage": 0.0283,
+        "tier": "D"
+      },
+      {
+        "class": "110",
+        "count": 9,
+        "percentage": 0.0255,
+        "tier": "D"
+      },
+      {
+        "class": "144",
+        "count": 9,
+        "percentage": 0.0255,
+        "tier": "D"
+      },
+      {
+        "class": "140",
+        "count": 8,
+        "percentage": 0.0227,
+        "tier": "D"
+      },
+      {
+        "class": "133",
+        "count": 8,
+        "percentage": 0.0227,
+        "tier": "D"
+      },
+      {
+        "class": "141",
+        "count": 8,
+        "percentage": 0.0227,
+        "tier": "D"
+      },
+      {
+        "class": "117",
+        "count": 8,
+        "percentage": 0.0227,
+        "tier": "D"
+      },
+      {
+        "class": "112",
+        "count": 6,
+        "percentage": 0.017,
+        "tier": "D"
+      },
+      {
+        "class": "156",
+        "count": 5,
+        "percentage": 0.0142,
+        "tier": "D"
+      },
+      {
+        "class": "163",
+        "count": 4,
+        "percentage": 0.0113,
+        "tier": "D"
+      },
+      {
+        "class": "136",
+        "count": 3,
+        "percentage": 0.0085,
+        "tier": "D"
+      },
+      {
+        "class": "127",
+        "count": 3,
+        "percentage": 0.0085,
+        "tier": "D"
+      },
+      {
+        "class": "175",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "129",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "147",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "103",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "122",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "128",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "113",
+        "count": 2,
+        "percentage": 0.0057,
+        "tier": "D"
+      },
+      {
+        "class": "132",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "123",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "153",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "143",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "150",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "114",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "148",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "176",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      },
+      {
+        "class": "162",
+        "count": 1,
+        "percentage": 0.0028,
+        "tier": "D"
+      }
+    ],
+    "after_distribution": [
+      {
+        "class": "10",
+        "count": 16280,
+        "percentage": 46.444,
+        "tier": "A"
+      },
+      {
+        "class": "1",
+        "count": 11950,
+        "percentage": 34.0912,
+        "tier": "A"
+      },
+      {
+        "class": "165",
+        "count": 2090,
+        "percentage": 5.9624,
+        "tier": "B"
+      },
+      {
+        "class": "106",
+        "count": 1591,
+        "percentage": 4.5388,
+        "tier": "B"
+      },
+      {
+        "class": "111",
+        "count": 1053,
+        "percentage": 3.004,
+        "tier": "B"
+      },
+      {
+        "class": "121",
+        "count": 673,
+        "percentage": 1.9199,
+        "tier": "B"
+      },
+      {
+        "class": "104",
+        "count": 540,
+        "percentage": 1.5405,
+        "tier": "B"
+      },
+      {
+        "class": "102",
+        "count": 302,
+        "percentage": 0.8616,
+        "tier": "C"
+      },
+      {
+        "class": "109",
+        "count": 181,
+        "percentage": 0.5164,
+        "tier": "C"
+      },
+      {
+        "class": "115",
+        "count": 137,
+        "percentage": 0.3908,
+        "tier": "C"
+      },
+      {
+        "class": "146",
+        "count": 94,
+        "percentage": 0.2682,
+        "tier": "C"
+      },
+      {
+        "class": "145",
+        "count": 57,
+        "percentage": 0.1626,
+        "tier": "C"
+      },
+      {
+        "class": "101",
+        "count": 55,
+        "percentage": 0.1569,
+        "tier": "C"
+      },
+      {
+        "class": "107",
+        "count": 50,
+        "percentage": 0.1426,
+        "tier": "C"
+      }
+    ],
+    "artifact_paths": {
+      "before_purge": {
+        "csv": "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\class_distribution_before_purge_codrstafer.csv",
+        "json": "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\class_distribution_before_purge_codrstafer.json",
+        "png": "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\class_distribution_before_purge_codrstafer.png",
+        "html": "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\class_distribution_before_purge_codrstafer.html"
+      },
+      "after_purge": {
+        "csv": "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\class_distribution_after_purge_codrstafer.csv",
+        "json": "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\class_distribution_after_purge_codrstafer.json",
+        "png": "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\class_distribution_after_purge_codrstafer.png",
+        "html": "D:\\Repos\\Energisa\\imec_analysis\\model\\exploration\\class_distribution_after_purge_codrstafer.html"
+      }
+    }
+  },
+  "class_weight_registry": {
+    "target_column": "CODRSTAFER",
+    "min_class_percentage": 0.1,
+    "tier_thresholds": {
+      "A": 15.0,
+      "B": 1.0,
+      "C": 0.1
+    },
+    "discard_tier_label": "D",
+    "total_rows": 35318,
+    "retained_rows": 35053,
+    "retained_rows_percentage": 99.2497,
+    "retained_class_count": 14,
+    "discarded_class_count": 36,
+    "discarded_rows": 265,
+    "classes": [
+      {
+        "class": "10",
+        "count": 16280,
+        "percentage": 46.0955,
+        "tier": "A",
+        "weight": 0.153795
+      },
+      {
+        "class": "1",
+        "count": 11950,
+        "percentage": 33.8354,
+        "tier": "A",
+        "weight": 0.209522
+      },
+      {
+        "class": "165",
+        "count": 2090,
+        "percentage": 5.9177,
+        "tier": "B",
+        "weight": 1.197984
+      },
+      {
+        "class": "106",
+        "count": 1591,
+        "percentage": 4.5048,
+        "tier": "B",
+        "weight": 1.573718
+      },
+      {
+        "class": "111",
+        "count": 1053,
+        "percentage": 2.9815,
+        "tier": "B",
+        "weight": 2.377764
+      },
+      {
+        "class": "121",
+        "count": 673,
+        "percentage": 1.9055,
+        "tier": "B",
+        "weight": 3.720335
+      },
+      {
+        "class": "104",
+        "count": 540,
+        "percentage": 1.529,
+        "tier": "B",
+        "weight": 4.63664
+      },
+      {
+        "class": "102",
+        "count": 302,
+        "percentage": 0.8551,
+        "tier": "C",
+        "weight": 8.290681
+      },
+      {
+        "class": "109",
+        "count": 181,
+        "percentage": 0.5125,
+        "tier": "C",
+        "weight": 13.83307
+      },
+      {
+        "class": "115",
+        "count": 137,
+        "percentage": 0.3879,
+        "tier": "C",
+        "weight": 18.275808
+      },
+      {
+        "class": "146",
+        "count": 94,
+        "percentage": 0.2662,
+        "tier": "C",
+        "weight": 26.636018
+      },
+      {
+        "class": "145",
+        "count": 57,
+        "percentage": 0.1614,
+        "tier": "C",
+        "weight": 43.926065
+      },
+      {
+        "class": "101",
+        "count": 55,
+        "percentage": 0.1557,
+        "tier": "C",
+        "weight": 45.523377
+      },
+      {
+        "class": "107",
+        "count": 50,
+        "percentage": 0.1416,
+        "tier": "C",
+        "weight": 50.075714
+      }
+    ],
+    "discarded_summary_by_tier": [
+      {
+        "tier": "D",
+        "class_count": 36,
+        "total_rows": 265,
+        "total_percentage": 0.7505
+      }
+    ]
+  },
   "dropped_columns": {
     "heuristic": [
       "VLRDVI_ELM_A",
@@ -441,7 +1200,7 @@
         "NUM_INVOLUCRO_EQPTO_MDCAO",
         "SEQ_NUMLAUDO"
       ],
-      "datetime64[us]": [
+      "datetime64[ns]": [
         "DATAINIAFER",
         "DATATERAFER",
         "DATALAUDO",
@@ -488,13 +1247,6 @@
       "object": [
         "OBSAFER",
         "DSCMOD",
-        "VLRLTR_1",
-        "NUM_INVOLUCRO",
-        "LEITURA_KWH",
-        "COD_VERIFICADOR_LAUDO",
-        "LEITURA_KVARH"
-      ],
-      "str": [
         "TIPOMDR",
         "TIPO",
         "CODTIP_MED",
@@ -507,12 +1259,17 @@
         "INDRST_GER",
         "SIT_LACRE",
         "INDRST_ENS_CRP",
+        "VLRLTR_1",
         "INDRST_ENS_ISP_1",
         "INDRST_ENS_EXD_1",
         "INDRST_ENS_MRC_1",
         "INDRST_ENS_EXM_1",
         "INDRST_GER_1",
-        "INDRST_ENS_CRP_1"
+        "INDRST_ENS_CRP_1",
+        "NUM_INVOLUCRO",
+        "LEITURA_KWH",
+        "COD_VERIFICADOR_LAUDO",
+        "LEITURA_KVARH"
       ]
     }
   },
@@ -522,136 +1279,136 @@
     "parameter": 0.95,
     "n_components": 128,
     "explained_variance_ratio": [
-      0.004116171390424661,
-      0.1602466953666688,
-      0.10502169515727466,
-      0.09116285500155975,
-      0.06543690879884419,
-      0.05947004184443237,
-      0.05834166277264942,
-      0.05781639016717073,
-      0.05528267332602312,
-      0.05304180360074452,
-      0.05056693266241931,
-      0.021178823375173402,
-      0.02011899096340233,
-      0.013916686452090056,
-      0.012114160298789952,
-      0.009714463002190693,
-      0.009173271335308803,
-      0.00789032004740307,
-      0.007051584704084895,
-      0.006035985582118809,
-      0.005823513700662263,
-      0.004705298493193999,
-      0.004532721305295889,
-      0.004153163847937476,
-      0.0036933175108786625,
-      0.0036464760013624315,
-      0.003351230205687318,
-      0.002925897132471649,
-      0.002691706573524445,
-      0.002526029587029694,
-      0.002404772830166088,
-      0.0023409153662488484,
-      0.002009236017370068,
-      0.0019278755762375155,
-      0.0018376693944741182,
-      0.0016755221286244776,
-      0.0015689977016995107,
-      0.0015174672300987246,
-      0.0013128481919010629,
-      0.001278294651575265,
-      0.0011331717551880342,
-      0.0010714705626718578,
-      0.0009335934190850773,
-      0.0008832909558970502,
-      0.0008207168446475495,
-      0.0008120446550681567,
-      0.0007853850407443851,
-      0.0007260288489418547,
-      0.0006945590201975831,
-      0.0006755571657019265,
-      0.000638781708826341,
-      0.000625328055994324,
-      0.0005908818414710797,
-      0.0005743908615119946,
-      0.0005716151020894241,
-      0.0005420559583859054,
-      0.0005150623008902615,
-      0.0005067497470689814,
-      0.00048167400586724503,
-      0.00047683044939165776,
-      0.0004499439054652232,
-      0.0004159899131449769,
-      0.00040620149376434036,
-      0.0003871154139765501,
-      0.0003590360963683581,
-      0.0003516960066790141,
-      0.00033414755915411426,
-      0.00033195810321771143,
-      0.0003254367375791753,
-      0.0003253426551210762,
-      0.000313121776677936,
-      0.0002839569924945343,
-      0.00026724738345519866,
-      0.0002552071649908814,
-      0.0002509358000460342,
-      0.0002390894483507244,
-      0.0002236430625568674,
-      0.00022285262389480878,
-      0.00021379441507931446,
-      0.00020287308052600105,
-      0.000197432228396917,
-      0.00018962352198908866,
-      0.00017389137404795122,
-      0.00017086584616985836,
-      0.00016635900002967733,
-      0.00015971479561605338,
-      0.00015566947006105878,
-      0.0001521348913718684,
-      0.00014745922744451067,
-      0.00014305567262908563,
-      0.00013735482762727283,
-      0.0001351862964884541,
-      0.0001287304445341514,
-      0.00012563567207570287,
-      0.00012136474636544135,
-      0.00012052454003576799,
-      0.00011385722796357028,
-      0.00010654165007206188,
-      0.00010447853371342744,
-      9.820246740843174e-05,
-      9.463820541541902e-05,
-      8.627845475181324e-05,
-      8.45692015457711e-05,
-      8.135403380968328e-05,
-      7.828615615185778e-05,
-      7.478866949141531e-05,
-      7.211140284752246e-05,
-      6.764302250009142e-05,
-      5.8402853283341094e-05,
-      5.59982782536363e-05,
-      5.25835745091813e-05,
-      4.975918164448531e-05,
-      4.6634368779684214e-05,
-      4.624804653206318e-05,
-      4.6000334656304594e-05,
-      4.4515185586187e-05,
-      4.313795847908559e-05,
-      4.2253753188093807e-05,
-      3.792110431411386e-05,
-      3.7683266682047835e-05,
-      3.625014123343663e-05,
-      3.42423080557118e-05,
-      3.3482194043158e-05,
-      3.163250709744259e-05,
-      3.08965229557507e-05,
-      2.9795086475449406e-05,
-      2.6185824223966467e-05,
-      2.4172573598053266e-05
+      0.004105634838024332,
+      0.16024193676756465,
+      0.1049314516890162,
+      0.08778584791537561,
+      0.06546642642524599,
+      0.05957358097066152,
+      0.05838353372040362,
+      0.057829289519329,
+      0.0552196445028432,
+      0.053023333722598744,
+      0.050464854598639815,
+      0.024314223246070275,
+      0.020764708341584653,
+      0.013974627089942912,
+      0.012162889844348407,
+      0.009647188450179438,
+      0.009163082598161615,
+      0.007814342142278828,
+      0.006989116831318119,
+      0.006018538480635999,
+      0.005773742892254753,
+      0.004653022632269142,
+      0.004444570317073364,
+      0.004138730723485565,
+      0.0036834557500001496,
+      0.00360927949641181,
+      0.003338257506074829,
+      0.0029331869819276862,
+      0.0026961312102887487,
+      0.0025136150251871335,
+      0.0023972790091886125,
+      0.002344462418767551,
+      0.0020088513683957964,
+      0.0019275847211170062,
+      0.0018435707270668062,
+      0.0016815986259131452,
+      0.0015757818953274082,
+      0.0015198133381365444,
+      0.0013142966354363573,
+      0.00128135277048523,
+      0.0011376716060300688,
+      0.0010791243903081052,
+      0.0009374356403681793,
+      0.000884415249734027,
+      0.0008253237702061732,
+      0.0008140725169385828,
+      0.0007850879244685894,
+      0.000729060656654412,
+      0.0006965814220255413,
+      0.0006715367273305021,
+      0.0006395905279049646,
+      0.0006254655274387843,
+      0.0005865028047203305,
+      0.0005766416558227082,
+      0.0005739419030178319,
+      0.0005445402945715596,
+      0.0005157103489146885,
+      0.0005059153570545954,
+      0.0004794942084315763,
+      0.000473653385387701,
+      0.0004496843243584986,
+      0.00041580526949427774,
+      0.00040526500404813393,
+      0.00038811308041087744,
+      0.00035939483811126753,
+      0.00035308816762780665,
+      0.0003347538078211403,
+      0.00033172570183313024,
+      0.00032596243951812573,
+      0.0003225123476118725,
+      0.0003117258643475191,
+      0.0002838874260369196,
+      0.0002692086574902902,
+      0.0002567187118858901,
+      0.0002515198506409245,
+      0.00023998483487319507,
+      0.00022407618271425098,
+      0.00022320559352780804,
+      0.00021409857857324598,
+      0.00020312420068178006,
+      0.00019550087371509412,
+      0.00018970515381049567,
+      0.00017513728224896816,
+      0.0001716952602432519,
+      0.0001651914753521779,
+      0.0001598736764168187,
+      0.00015624086306824297,
+      0.0001530756693185074,
+      0.000145016622027166,
+      0.00014400033929112664,
+      0.00013720826986249362,
+      0.00013452285650939884,
+      0.00012898106093343892,
+      0.00012615393253846493,
+      0.00011996919448501245,
+      0.00011928525980287388,
+      0.00011333260090981945,
+      0.00010620113156244544,
+      0.00010469284350637551,
+      9.870695593550526e-05,
+      9.498520638150736e-05,
+      8.668928656539599e-05,
+      8.316447435628394e-05,
+      8.080866314544852e-05,
+      7.839643989181874e-05,
+      7.519648244705206e-05,
+      7.137493600613691e-05,
+      6.810232387384401e-05,
+      5.811656249702938e-05,
+      5.614619541983086e-05,
+      5.2965679076788235e-05,
+      4.9995472337680495e-05,
+      4.6900612689327944e-05,
+      4.64327793984209e-05,
+      4.631048433225732e-05,
+      4.484809990861573e-05,
+      4.339251711288792e-05,
+      4.180918254501979e-05,
+      3.8104195964102496e-05,
+      3.756080795947347e-05,
+      3.638451012506708e-05,
+      3.368209531201232e-05,
+      3.239000967038268e-05,
+      3.180915222437539e-05,
+      3.096939277733029e-05,
+      2.997065654733563e-05,
+      2.6278550678821368e-05,
+      2.4509225572758435e-05
     ],
-    "explained_variance_ratio_sum": 0.9481353938715417
+    "explained_variance_ratio_sum": 0.9480902418543211
   },
   "target": {
     "dtype": "int64",
@@ -659,130 +1416,19 @@
     "classes": null
   },
   "exploration": {
-    "enabled": true,
-    "output_dir": "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration",
-    "metadata_path": "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\exploration_metadata.json",
-    "dashboard_path": "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\exploration_dashboard.html",
-    "numeric_columns": [
-      "NUMOSM",
-      "VLRENS_CGA_IDU",
-      "VLRENS_CGA_PQN",
-      "NUMLAUDO",
-      "CODFORN",
-      "NUMELM",
-      "NUMFASE",
-      "NUMFIO",
-      "TENSAONOM",
-      "CODLCD_ITC",
-      "VLRLTR",
-      "FTRCRC_CGA_NMN_SER",
-      "FTRCRC_CGA_IDU",
-      "FTRCRC_CGA_PQN",
-      "FTRCRC_CGA_NMN_SER_1",
-      "FTRCRC_CGA_IDU_1",
-      "FTRCRC_CGA_PQN_1",
-      "VLRENS_CGA_NMN_1",
-      "VLRENS_CGA_IDU_1",
-      "VLRENS_CGA_PQN_1",
-      "VLRDVI_ELM_A_1",
-      "CODFTR_CRC",
-      "CODFTR_CRC_1",
-      "NUM_INVOLUCRO_EQPTO_MDCAO"
-    ],
-    "skipped_columns": [
-      "VLRENS_CGA_NMN",
-      "VLRENS_CGA_CPC",
-      "RESPAFER",
-      "CODPRSERV",
-      "VLRDVI_ELM_A",
-      "VLRDVI_ELM_B",
-      "VLRDVI_ELM_C",
-      "FTRCRC_CGA_NMN_ELM",
-      "TPRIFR",
-      "TPRSUP",
-      "FTRCRC_CGA_NMN_ELM_1",
-      "TPRIFR_1",
-      "TPRSUP_1",
-      "CODPRJ",
-      "ENSAIO_LAUDO_CORR",
-      "INDRST_ENS_COR",
-      "INDRST_ENS_TNS",
-      "ENSAIO_LAUDO_MESA",
-      "ENSAIO_LAUDO_TEMPERATURA",
-      "ENSAIO_LAUDO_TEMPERATURA2",
-      "IND_LAUDO_EXTERNO",
-      "VLRENS_CGA_CPC_1",
-      "VLRDVI_ELM_B_1",
-      "VLRDVI_ELM_C_1",
-      "INDRST_ENS_COR_1",
-      "INDRST_ENS_TNS_1",
-      "VLRLTR_MAN_KWH",
-      "VLRLTR_MAN_KVARH",
-      "SEQ_NUMLAUDO",
-      "DATAINIAFER",
-      "DATATERAFER",
-      "OBSAFER",
-      "DATALAUDO",
-      "DSCMOD",
-      "TIPOMDR",
-      "TIPO",
-      "CODTIP_MED",
-      "DSCRSTAFER",
-      "USUARIO_AFER",
-      "INDRST_ENS_ISP",
-      "INDRST_ENS_EXD",
-      "INDRST_ENS_MRC",
-      "INDRST_ENS_EXM",
-      "INDRST_GER",
-      "SIT_LACRE",
-      "INDRST_ENS_CRP",
-      "VLRLTR_1",
-      "INDRST_ENS_ISP_1",
-      "INDRST_ENS_EXD_1",
-      "INDRST_ENS_MRC_1",
-      "INDRST_ENS_EXM_1",
-      "INDRST_GER_1",
-      "INDRST_ENS_CRP_1",
-      "DAT_ENVIO_AFERICAO",
-      "DAT_RETORNO_AFERICAO",
-      "NUM_INVOLUCRO",
-      "LEITURA_KWH",
-      "COD_VERIFICADOR_LAUDO",
-      "LEITURA_KVARH"
-    ],
-    "files_by_kind": {
-      "histogram_png": [
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_01.png",
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_02.png",
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_03.png"
-      ],
-      "histogram_html": [
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_01.html",
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_02.html",
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\histogram_page_03.html"
-      ],
-      "scatter_png": [
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_01.png",
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_02.png",
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_03.png"
-      ],
-      "scatter_html": [
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_01.html",
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_02.html",
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\scatter_vs_codrstafer_page_03.html"
-      ],
-      "correlation_png": [
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\correlation_matrix.png"
-      ],
-      "correlation_html": [
-        "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\exploration\\correlation_matrix.html"
-      ]
-    }
+    "enabled": false,
+    "output_dir": null,
+    "metadata_path": null,
+    "dashboard_path": null,
+    "numeric_columns": [],
+    "skipped_columns": [],
+    "files_by_kind": {}
   },
   "artifacts": {
-    "pipeline_path": "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\preprocessing_pipeline.pkl",
-    "metadata_path": "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\preparation_metadata.json",
-    "prepared_dataset_path": "\\\\fs-users.scl.corp\\dcds-trr$\\Repos\\imec_analysis\\model\\prepared_training_dataset.csv",
-    "target_encoder_path": null
+    "pipeline_path": "D:\\Repos\\Energisa\\imec_analysis\\model\\preprocessing_pipeline.pkl",
+    "metadata_path": "D:\\Repos\\Energisa\\imec_analysis\\model\\preparation_metadata.json",
+    "prepared_dataset_path": "D:\\Repos\\Energisa\\imec_analysis\\model\\prepared_training_dataset.csv",
+    "target_encoder_path": null,
+    "class_weight_registry_path": "D:\\Repos\\Energisa\\imec_analysis\\model\\class_weight_registry.json"
   }
 }

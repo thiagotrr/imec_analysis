@@ -1,0 +1,19 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt imbalanced-learn pytest
+
+COPY src ./src
+COPY scripts ./scripts
+COPY tests ./tests
+COPY resultado_laudo_afericao.xlsx ./src/machine_learning/resultado_laudo_afericao.xlsx
+
+ENV PYTHONPATH=/app/src
+
+CMD ["python", "scripts/run_task05_v2.py"]

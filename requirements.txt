@@ -10,3 +10,5 @@ seaborn
 plotly
 catboost
 xgboost
+imbalanced-learn
+pytest

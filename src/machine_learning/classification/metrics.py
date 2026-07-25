@@ -8,6 +8,7 @@ from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
     f1_score,
+    precision_recall_fscore_support,
     precision_score,
     recall_score,
     roc_auc_score,
@@ -86,6 +87,37 @@ def compute_classification_metrics(
         average=resolved_average,
         multiclass=multiclass,
     )
+
+
+def compute_per_class_metrics(
+    y_true: pd.Series | np.ndarray,
+    y_pred: np.ndarray,
+    classes: np.ndarray,
+) -> list[dict[str, object]]:
+    """Retorna precision/recall/f1/support por classe (rótulos codificados).
+
+    Complementa as métricas macro/weighted de ``compute_classification_metrics``
+    — essenciais para avaliar o desbalanceamento agregado, mas insuficientes
+    para responder "o data augmentation ajudou a classe rara X especificamente?".
+    O caller é responsável por decodificar ``class`` (rótulo codificado) para o
+    rótulo original e anotar a camada de qualificação (ver
+    ``feature_engineering.qualify_class_distribution``), pois este módulo não
+    tem acesso ao ``LabelEncoder`` nem à distribuição de classes.
+    """
+    labels = np.asarray(classes)
+    precisions, recalls, f1s, supports = precision_recall_fscore_support(
+        y_true, y_pred, labels=labels, average=None, zero_division=0
+    )
+    return [
+        {
+            "class": int(label),
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+            "support": int(support),
+        }
+        for label, precision, recall, f1, support in zip(labels, precisions, recalls, f1s, supports)
+    ]
 
 
 def format_classification_metrics(metrics: ClassificationMetrics) -> dict[str, float | str | bool | None]:
