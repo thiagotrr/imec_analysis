@@ -19,16 +19,35 @@ except ImportError:  # pragma: no cover
     XGBClassifier = None
 
 
-DEFAULT_CLASSIFIER_ORDER = ("catboost", "xgboost")
-"""Algoritmos executados por padrão no pipeline de classificação.
+DEFAULT_CLASSIFIER_ORDER = ("xgboost",)
+"""Algoritmo(s) executado(s) por padrão no pipeline de classificação.
 
-k-NN (``"knn"``) e SVM (``"svm"``) permanecem implementados e disponíveis em
-``build_classifier_registry`` para uso pontual/experimental, mas foram
-descontinuados do fluxo padrão por apresentarem desempenho inferior e maior
-custo de treino/inferência em relação a CatBoost e XGBoost neste problema
-(ver docs/task05_evolucao_pipeline_modelos.md). Para reativá-los, informe
+A partir da Task 006 (ver docs/task006_proximos_passos.md e, especialmente,
+docs/task05_evolucao_pipeline_modelos_v3.md), o cenário padrão passa a ser
+SOMENTE XGBoost. Racional: dos 6 combos testados com dados reais na v3
+(CatBoost/XGBoost × nenhum/SMOTE/ADASYN), XGBoost superou o CatBoost em
+accuracy/precision/F1 macro em praticamente todos os cenários — o melhor
+resultado geral foi XGBoost+SMOTE (F1 macro 61,14%), contra 56,81% do
+CatBoost+SMOTE. CatBoost só teve ROC-AUC levemente superior (~98,5% vs.
+~98,1-98,7%), o que não compensa a perda de F1 macro, a métrica de
+referência do projeto dado o forte desbalanceamento multiclasse do
+problema (ver "Comparativo macro" em docs/task05_evolucao_pipeline_modelos_v3.md).
+
+CatBoost (``"catboost"``) permanece **totalmente implementado e mantido**
+em ``build_classifier_registry``/``run_classifier_training`` — não foi
+removido do código, apenas descontinuado do fluxo *padrão*, seguindo
+exatamente o mesmo padrão já usado para k-NN e SVM (ver docstring abaixo):
+está disponível para uso pontual, comparativo ou de auditoria a qualquer
+momento. Para reativá-lo, informe ``algorithm_order=("catboost", "xgboost")``
+(ou a combinação desejada, ex.: incluindo k-NN/SVM) em ``ClassificationConfig``.
+
+k-NN (``"knn"``) e SVM (``"svm"``) seguem o mesmo padrão desde a v2: também
+permanecem implementados e disponíveis em ``build_classifier_registry`` para
+uso pontual/experimental, descontinuados do fluxo padrão por desempenho
+inferior e maior custo de treino/inferência em relação a CatBoost e XGBoost
+(ver docs/task05_evolucao_pipeline_modelos.md). Reative-os do mesmo jeito:
 ``algorithm_order=("catboost", "xgboost", "knn", "svm")`` (ou a combinação
-desejada) em ``ClassificationConfig``.
+desejada).
 """
 
 

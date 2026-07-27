@@ -11,9 +11,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_sample_weight
 
-from ..data_preparation import get_model_dir
+from ..data_preparation import DEFAULT_CLASS_WEIGHT_REGISTRY_FILENAME, get_model_dir
 from ..feature_engineering import (
     CLASS_TIER_DISCARD_LABEL,
+    CLASS_TIER_THRESHOLDS,
     DEFAULT_TARGET_COLUMN,
     MIN_CLASS_PERCENTAGE_THRESHOLD,
     compute_class_distribution,
@@ -35,6 +36,7 @@ from .metrics import (
     compute_per_class_metrics,
     format_classification_metrics,
 )
+from .model_compilation import ModelCompilationSummary, compile_classification_results
 from .models import DEFAULT_CLASSIFIER_ORDER, build_classifier_registry, run_classifier_training
 from .resampling import wrap_with_resampling
 
@@ -72,11 +74,43 @@ class ClassificationConfig:
     dataset_path: str | Path | None = None
 
     # Fase 2: tratamento de desbalanceamento (SMOTE/ADASYN) e validação cruzada.
-    resampling_strategies: tuple[str | None, ...] = (None,)
+    resampling_strategies: tuple[str | None, ...] = ("smote",)
     """Cenários de resampling a executar e comparar, ex.: ``(None, "smote", "adasyn")``.
-    ``None`` representa o cenário "sem resampling" (comportamento original)."""
+    ``None`` representa o cenário "sem resampling".
+
+    A partir da Task 006 (ver docs/task05_evolucao_pipeline_modelos_v3.md), o
+    padrão passa a ser SOMENTE SMOTE. Racional: nos 6 combos testados com
+    dados reais, SMOTE foi neutro/levemente positivo em ambos os algoritmos
+    (XGBoost+SMOTE teve o melhor F1 macro geral, 61,14%, ~1,6pp acima de
+    XGBoost sem resampling; CatBoost+SMOTE 56,81% vs. 56,51% sem resampling),
+    enquanto ADASYN **piorou** o desempenho em ambos (XGBoost: 59,52% → 57,84%;
+    CatBoost: 56,51% → 53,87%) e com efeito inconsistente por classe — por
+    isso ADASYN deixa de ser executado por padrão.
+
+    "Nenhum resampling" e ADASYN continuam totalmente implementados e
+    acessíveis explicitamente via ``resampling_strategies=(None,)`` /
+    ``resampling_strategies=("adasyn",)`` (ou qualquer combinação, ex.:
+    ``(None, "smote", "adasyn")`` para reproduzir a comparação lado a lado
+    feita na v3 — ver scripts/run_task05_v3.py)."""
     enable_cross_validation: bool = False
     cross_validation_folds: int = DEFAULT_CV_FOLDS
+
+    compile_artifacts: bool = True
+    """Controla se a etapa de "compilação" de modelos (persistência dos
+    modelos treinados em ``model/compiled/*.pkl`` + metadados ``.json``, ver
+    ``classification.model_compilation``) roda ao final do workflow —
+    análogo a ``persist_artifacts``, mas para os artefatos de INFERÊNCIA
+    (não confundir com os artefatos de preparação salvos por
+    ``data_preparation.save_preprocessing_artifacts``).
+
+    Reaproveita os modelos já treinados nesta execução (via
+    ``ClassificationResult.trained_model``), sem re-treinar. Como o cenário
+    padrão agora só treina XGBoost+SMOTE (ver ``DEFAULT_CLASSIFIER_ORDER`` e
+    o default de ``resampling_strategies`` acima), na prática o "campeão"
+    (``model/compiled/champion.pkl``) coincide com essa única combinação —
+    mas a etapa é genérica e funciona com qualquer conjunto de combinações
+    (ex.: incluindo CatBoost) informado via ``algorithm_order``/
+    ``resampling_strategies``."""
 
     # Fase 1: busca de hiperparâmetros (opcional, custosa - ver hyperparameter_search.py).
     enable_hyperparameter_search: bool = False
@@ -99,6 +133,18 @@ class ClassificationResult:
     e ``_decorate_per_class_with_labels_and_tiers``. Permite avaliar o efeito
     do resampling especificamente nas classes das camadas B/C, em vez de
     apenas nas médias macro."""
+    trained_model: object = None
+    """Referência ao estimador `sklearn`/`imblearn` já treinado (ex.:
+    `XGBClassifier` ou o `Pipeline` de resampling que o encapsula).
+
+    Adicionado na Task 006 exclusivamente para permitir a etapa de
+    "compilação" (ver `model_compilation.compile_classification_results`)
+    reaproveitar o modelo já treinado nesta execução, sem re-treinar.
+    Deliberadamente NÃO é incluído em `results_payload`/`consolidated`
+    (as estruturas persistidas em `classification_details.json`/
+    `classification_summary.csv`, que continuam construídas manualmente
+    campo a campo abaixo) — serializar um objeto de modelo em JSON não
+    faz sentido e poderia vazar dados binários/grandes no relatório."""
 
 
 @dataclass(frozen=True)
@@ -108,6 +154,11 @@ class ClassificationWorkflowResult:
     artifacts: ClassificationArtifacts | None
     split_metadata: dict[str, object]
     hyperparameter_search_results: list[HyperparameterSearchResult]
+    compiled_models: ModelCompilationSummary | None = None
+    """Resultado da etapa de compilação (ver `ClassificationConfig.compile_artifacts`
+    e `model_compilation.compile_classification_results`); `None` quando
+    `compile_artifacts=False` ou quando nenhum resultado tinha `trained_model`
+    disponível."""
 
 
 def _resolve_prepared_dataset_path(output_dir: str | Path | None = None) -> Path:
@@ -363,6 +414,7 @@ def run_classification_workflow(
                 cross_validation=cross_validation_summary,
                 hyperparameter_search=search_summary,
                 per_class=per_class,
+                trained_model=training_result.model,
             )
             results.append(result)
             _print_result(result)
@@ -423,10 +475,33 @@ def run_classification_workflow(
         print("\nConsolidado final")
         print(consolidated.to_string(index=False))
 
+    compiled_models: ModelCompilationSummary | None = None
+    if resolved_config.compile_artifacts:
+        # Reaproveita os modelos já treinados (`ClassificationResult.trained_model`)
+        # nesta mesma execução — a compilação NÃO re-treina nada. `feature_columns`
+        # é a mesma para todos os resultados desta chamada (mesmo split de treino).
+        class_weight_registry_path = get_model_dir(resolved_config.output_dir) / DEFAULT_CLASS_WEIGHT_REGISTRY_FILENAME
+        compiled_models = compile_classification_results(
+            results=results,
+            feature_columns=x_train.columns.tolist(),
+            target_classes=[label_by_encoded[index] for index in sorted(label_by_encoded)],
+            tier_thresholds=CLASS_TIER_THRESHOLDS,
+            class_weight_registry_path=class_weight_registry_path if class_weight_registry_path.exists() else None,
+            output_dir=resolved_config.output_dir,
+        )
+        if compiled_models.champion is not None:
+            print(
+                "\nModelo campeão compilado: "
+                f"{compiled_models.champion.algorithm} (resampling="
+                f"{compiled_models.champion.resampling or RESAMPLING_LABEL_NONE}) "
+                f"-> {compiled_models.champion.pickle_path}"
+            )
+
     return ClassificationWorkflowResult(
         results=results,
         consolidated=consolidated,
         artifacts=artifacts,
         split_metadata=split_metadata,
         hyperparameter_search_results=hyperparameter_search_results,
+        compiled_models=compiled_models,
     )

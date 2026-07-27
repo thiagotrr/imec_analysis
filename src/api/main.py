@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from .inspecao_router import router as inspecao_router
 from .request_model import InspecaoMedidorRequest
 from .response_model import InspecaoMedidorResponse
 from log import get_log
@@ -23,6 +24,11 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# Endpoints da Task 006 (compilação de modelo + contratos + endpoints, ver
+# docs/task006_proximos_passos.md): tag própria ("Inspeção de Medidor de
+# Consumo"), separada da tag do endpoint legado abaixo (`/analise_inspecao`).
+app.include_router(inspecao_router)
 
 @app.post("/analise_inspecao", 
           tags=["Análise de Inspeção de Medidor de Consumo"],

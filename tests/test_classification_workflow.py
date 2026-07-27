@@ -10,7 +10,7 @@ from machine_learning.classification import (
     ClassificationConfig,
     run_classification_workflow,
 )
-from machine_learning.classification.models import DEFAULT_CLASSIFIER_ORDER
+from machine_learning.classification.models import DEFAULT_CLASSIFIER_ORDER, build_classifier_registry
 from machine_learning.data_preparation import prepare_training_dataset
 from machine_learning.feature_engineering import MIN_CLASS_PERCENTAGE_THRESHOLD
 
@@ -31,8 +31,37 @@ def prepared_dataset_dir(synthetic_dataset: pd.DataFrame, tmp_path: Path) -> Pat
     return tmp_path
 
 
-def test_default_classifier_order_is_catboost_and_xgboost_only() -> None:
-    assert DEFAULT_CLASSIFIER_ORDER == ("catboost", "xgboost")
+def test_default_classifier_order_is_xgboost_only() -> None:
+    """A partir da Task 006, o cenário padrão passa a ser SOMENTE XGBoost
+    (ver docstring de `DEFAULT_CLASSIFIER_ORDER` e
+    docs/task05_evolucao_pipeline_modelos_v3.md). CatBoost continua
+    implementado e disponível — ver teste abaixo."""
+    assert DEFAULT_CLASSIFIER_ORDER == ("xgboost",)
+
+
+def test_catboost_remains_available_via_build_classifier_registry() -> None:
+    """CatBoost não foi removido do código (apenas descontinuado do fluxo
+    padrão, como já acontecia com k-NN/SVM) — permanece acessível via
+    `algorithm_order=("catboost", ...)` em `ClassificationConfig`."""
+    registry = build_classifier_registry(random_state=42, n_classes=3)
+    assert "catboost" in registry
+    assert "xgboost" in registry
+
+
+def test_run_classification_workflow_default_config_uses_xgboost_and_smote_only(
+    prepared_dataset_dir: Path,
+) -> None:
+    """Com a `ClassificationConfig` totalmente padrão (Task 006), o workflow
+    deve treinar apenas XGBoost com SMOTE — CatBoost e "nenhum resampling"/
+    ADASYN só entram quando informados explicitamente (ver teste abaixo e
+    `test_run_classification_workflow_with_resampling_scenarios`)."""
+    config = ClassificationConfig(target_column=TARGET_COLUMN, output_dir=prepared_dataset_dir)
+    result = run_classification_workflow(config=config)
+
+    assert len(result.results) == 1
+    assert result.results[0].name == "xgboost"
+    assert result.results[0].resampling == "smote"
+    assert result.results[0].trained_model is not None
 
 
 def test_run_classification_workflow_end_to_end_without_resampling(prepared_dataset_dir: Path) -> None:
@@ -40,11 +69,19 @@ def test_run_classification_workflow_end_to_end_without_resampling(prepared_data
 
     Valida que o pipeline de classificação executa sem erros com o novo
     critério de expurgo por percentual e produz métricas para os dois
-    algoritmos padrão. As métricas aqui NÃO são representativas do problema
-    real (dataset é sintético) — servem apenas como validação de execução do
-    código (ver docs/task05_evolucao_pipeline_modelos.md).
+    algoritmos padrão da v3 (CatBoost/XGBoost), agora informados
+    explicitamente via `algorithm_order` já que deixaram de ser o padrão a
+    partir da Task 006 (ver `test_default_classifier_order_is_xgboost_only`).
+    As métricas aqui NÃO são representativas do problema real (dataset é
+    sintético) — servem apenas como validação de execução do código (ver
+    docs/task05_evolucao_pipeline_modelos.md).
     """
-    config = ClassificationConfig(target_column=TARGET_COLUMN, output_dir=prepared_dataset_dir)
+    config = ClassificationConfig(
+        target_column=TARGET_COLUMN,
+        output_dir=prepared_dataset_dir,
+        algorithm_order=("catboost", "xgboost"),
+        resampling_strategies=(None,),
+    )
     result = run_classification_workflow(config=config)
 
     algorithms_run = {r.name for r in result.results}
