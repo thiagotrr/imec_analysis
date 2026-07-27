@@ -1,37 +1,12 @@
-"""Utilitário de geração automática dos contratos Pydantic de laudo (Task 006, §2).
+"""Utilitário offline de inferência de FieldSpec a partir de um DataFrame.
 
-DECISÃO DE DESIGN — geração dinâmica (`pydantic.create_model`) em vez de um
-arquivo `.py` gerado: os modelos (`LaudoCompletoRequest`/`LaudoSinteticoRequest`,
-ver ``src/api/inspecao_request_model.py``) são construídos EM RUNTIME a partir
-de uma especificação de campos (``FieldSpec``) derivada de
-``feature_engineering.build_dataset_profile`` sobre um ``pandas.DataFrame``.
-Motivos:
+Os contratos de produção (`LaudoCompletoRequest` / `LaudoSinteticoRequest` em
+`inspecao_request_model.py`) são classes Pydantic **FIXAS**. Este módulo
+permanece para:
 
-1. **Nunca dessincronizar** (exigência do plano, §2.2): qualquer mudança nas
-   colunas do dataset real (`resultado_laudo_afericao.xlsx`) se propaga
-   automaticamente na próxima regeneração do schema — não há um arquivo
-   `.py` gerado para lembrar de re-gerar/revisar manualmente a cada mudança
-   de coluna.
-2. **Testabilidade**: as funções abaixo recebem um ``DataFrame`` diretamente
-   (real OU sintético), então os testes usam o MESMO dataset sintético de
-   ``tests/conftest.py`` — rápido, sem tocar no Excel real de 35k linhas —
-   para validar a lógica de inferência de tipo/nulidade; o comportamento é
-   idêntico ao usado com dados reais.
-3. **Simplicidade**: evita um passo de "geração de código" que precisaria
-   ser versionado, revisado em PR e mantido manualmente em sincronia;
-   ``create_model`` resolve isso em poucas linhas, sem arquivo intermediário.
-
-Uso em produção (API): reconstruir o ``DatasetProfile`` a partir do Excel real
-a cada import do módulo da API seria lento (leitura de ~35k linhas a cada
-``uvicorn --reload``) e desnecessário (o formato do dataset não muda a cada
-request). Por isso, ``scripts/generate_pydantic_schema.py`` gera, UMA VEZ
-(offline, quando o dataset/colunas mudarem), um cache leve em
-``model/schemas/raw_dataset_field_spec.json`` com a especificação de campos
-(nome/tipo/nulidade/exemplo) já calculada. A API
-(``src/api/inspecao_request_model.py``) apenas LÊ esse cache (JSON pequeno,
-leitura instantânea) para reconstruir os mesmos modelos via ``create_model``
-— sem depender do Excel em tempo de execução (com fallback explícito para o
-caminho lento caso o cache ainda não exista, ver esse módulo).
+1. Testes unitários de inferência de tipo/nulidade (dataset sintético).
+2. O script offline `scripts/generate_pydantic_schema.py` (artefatos em
+   `model/schemas/`, não consumidos pela API em runtime).
 """
 from __future__ import annotations
 

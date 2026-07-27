@@ -1,21 +1,14 @@
-"""Gera o cache de especificação de campos + JSON Schemas dos contratos de laudo (Task 006, §2).
+"""Gera o cache de especificação de campos + JSON Schemas dos contratos de laudo.
 
-Lê o dataset real (`resultado_laudo_afericao.xlsx`, via
-`feature_engineering.load_dataset`) e usa `api.schema_generation` (ver
-docstring desse módulo para o racional da geração dinâmica via
-`pydantic.create_model`) para derivar automaticamente:
+NOTA (revisão Task 006): os contratos da API em
+`src/api/inspecao_request_model.py` são agora classes Pydantic **FIXAS**
+(não reconstruídas em runtime). Este script permanece apenas como utilitário
+offline para inspecionar/atualizar artefatos em `model/schemas/` quando o
+dataset de origem mudar — a API NÃO depende mais desse cache.
 
-- `model/schemas/raw_dataset_field_spec.json`: cache consumido por
-  `src/api/inspecao_request_model.py` para reconstruir `LaudoCompletoRequest`/
-  `LaudoSinteticoRequest` em runtime SEM precisar reabrir o Excel a cada
-  import do módulo da API (leitura de ~35k linhas seria lenta a cada reload).
-- `model/schemas/laudo_completo_schema.json` / `laudo_sintetico_schema.json`:
-  JSON Schema (`model_json_schema()`) de cada contrato, só para inspeção
-  humana/documentação — não são lidos pela API.
-
-Rode este script sempre que as colunas do dataset real mudarem (novo laudo,
-nova coluna, etc.); NÃO precisa ser executado a cada deploy/teste — os
-contratos ficam "congelados" no cache até a próxima regeneração manual.
+Artefatos gerados:
+- `model/schemas/raw_dataset_field_spec.json`
+- `model/schemas/laudo_completo_schema.json` / `laudo_sintetico_schema.json`
 
 Uso:
     python scripts/generate_pydantic_schema.py

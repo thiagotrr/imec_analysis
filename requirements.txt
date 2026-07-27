@@ -1,14 +1,24 @@
-pydantic==2.12.5
-fastapi==0.135.1
-uvicorn==0.42.0
-pandas
-openpyxl
-numpy
-scikit-learn
-matplotlib
-seaborn
-plotly
-catboost
-xgboost
-imbalanced-learn
-pytest
+# API
+pydantic==2.13.4
+fastapi==0.115.0
+uvicorn==0.30.6
+python-multipart==0.0.12
+httpx==0.28.1
+
+# Dados / ML
+pandas==2.3.3
+openpyxl==3.1.5
+numpy==2.4.3
+scipy==1.18.0
+scikit-learn==1.9.0
+imbalanced-learn==0.14.2
+catboost==1.2.10
+xgboost==3.3.0
+
+# Visualização (exploração)
+matplotlib==3.11.1
+seaborn==0.13.2
+plotly==6.9.0
+
+# Testes
+pytest==8.3.3

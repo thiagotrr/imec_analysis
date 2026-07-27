@@ -79,10 +79,10 @@ def analisar_laudo_completo(laudo: LaudoCompletoRequest) -> InspecaoLaudoRespons
     tags=[TAG],
     summary="Analisa um laudo sintético (somente as features usadas pelo modelo)",
     description=(
-        "Recebe apenas as colunas efetivamente usadas pelo modelo (todas as colunas do "
-        "laudo, exceto `MANUALLY_REMOVED_FEATURES` — ver `feature_engineering.py` e "
-        "docs/task006_proximos_passos.md, §2.2). Uso: integração mais 'magra', em que o "
-        "consumidor já sabe filtrar o que é irrelevante para o modelo. "
+        "Recebe apenas as features retidas pelo último treino definitivo "
+        "(`retained_feature_columns` em `model/preparation_metadata.json` — contrato "
+        "fixo `LaudoSinteticoRequest`). Uso: integração magra com o mínimo necessário "
+        "para o `preprocessing_pipeline.pkl` ser executável. "
         "\n\n**TODO**: mesma ressalva do endpoint `/inspecao/laudo_completo` — inferência "
         "real fora do escopo desta task (ver §4 do plano)."
     ),
@@ -100,7 +100,7 @@ def analisar_laudo_sintetico(laudo: LaudoSinteticoRequest) -> InspecaoLaudoRespo
 @router.post(
     "/inspecao/csv",
     tags=[TAG],
-    summary="Analisa em lote um CSV com um ou mais laudos",
+    summary="Analisa em lote um CSV com um ou mais laudos. Encoding UTF-8.",
     description=(
         "Recebe um arquivo CSV (multipart/form-data) no mesmo layout de "
         "`resultado_laudo_afericao.xlsx` (mesmas colunas do contrato `LaudoCompletoRequest`, "

@@ -5,6 +5,7 @@ import pytest
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from api.inspecao_request_model import (
+    RETAINED_FEATURE_COLUMNS,
     InspecaoMedidorBase,
     LaudoCompletoRequest,
     LaudoSinteticoRequest,
@@ -115,8 +116,8 @@ def test_create_request_model_attaches_json_schema_example(synthetic_dataset: pd
 
 
 # ---------------------------------------------------------------------------
-# Contratos reais da API (`LaudoCompletoRequest`/`LaudoSinteticoRequest`),
-# construídos a partir do cache gerado por `scripts/generate_pydantic_schema.py`.
+# Contratos reais da API (`LaudoCompletoRequest`/`LaudoSinteticoRequest`) —
+# classes Pydantic FIXAS (sem geração dinâmica em runtime).
 # ---------------------------------------------------------------------------
 
 
@@ -124,14 +125,14 @@ def test_inspecao_medidor_base_forbids_extra_fields() -> None:
     assert InspecaoMedidorBase.model_config.get("extra") == "forbid"
 
 
-def test_laudo_sintetico_request_excludes_manually_removed_features() -> None:
-    sintetico_fields = set(LaudoSinteticoRequest.model_fields)
+def test_laudo_sintetico_request_matches_retained_feature_columns() -> None:
+    assert tuple(LaudoSinteticoRequest.model_fields) == RETAINED_FEATURE_COLUMNS
     for removed_feature in MANUALLY_REMOVED_FEATURES:
-        assert removed_feature not in sintetico_fields
+        assert removed_feature not in LaudoSinteticoRequest.model_fields
 
 
 def test_laudo_completo_request_has_more_fields_than_sintetico() -> None:
-    assert len(LaudoCompletoRequest.model_fields) >= len(LaudoSinteticoRequest.model_fields)
+    assert len(LaudoCompletoRequest.model_fields) > len(LaudoSinteticoRequest.model_fields)
     assert set(LaudoSinteticoRequest.model_fields).issubset(set(LaudoCompletoRequest.model_fields))
 
 
@@ -150,6 +151,12 @@ def test_laudo_sintetico_request_json_schema_includes_example() -> None:
 def test_laudo_completo_request_accepts_its_own_example_payload() -> None:
     example = LaudoCompletoRequest.model_config["json_schema_extra"]["example"]
     instance = LaudoCompletoRequest.model_validate(example)
+    assert instance is not None
+
+
+def test_laudo_sintetico_request_accepts_its_own_example_payload() -> None:
+    example = LaudoSinteticoRequest.model_config["json_schema_extra"]["example"]
+    instance = LaudoSinteticoRequest.model_validate(example)
     assert instance is not None
 
 
