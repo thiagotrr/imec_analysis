@@ -29,20 +29,41 @@ Durante a preparação, o pipeline também gera artefatos de data exploration em
 - matriz de correlação em PNG e HTML
 - metadata JSON com colunas consideradas e arquivos emitidos
 
-Exemplo de execução local:
+### Linha de comando (`src/main.py`)
+
+Ponto de entrada unificado — execute a partir da raiz do repositório:
+
+```powershell
+# Ajuda
+python src/main.py --help
+
+# API FastAPI (padrão, sem argumentos)
+python src/main.py
+python src/main.py --api
+
+# Pipeline de preparação + exploração + classificação
+python src/main.py --ml
+```
+
+| Comando | Efeito |
+|---|---|
+| `python src/main.py` | Sobe a API em `http://0.0.0.0:8000` (Swagger: `/docs`) |
+| `python src/main.py --api` | Idem ao padrão |
+| `python src/main.py --ml` | Roda preparação, exploração gráfica, treino e consolidação de métricas |
+
+Com `--ml`, o fluxo gera o dashboard HTML em [model/exploration](model/exploration), treina o algoritmo padrão (XGBoost + SMOTE) e persiste o consolidado em [model/classification](model/classification).
+
+Scripts individuais (opcional, fora do entrypoint):
 
 ```powershell
 python src/machine_learning/feature_engineering.py
 python src/machine_learning/data_preparation.py
-python src/main.py
 ```
 
-O comando [src/main.py](src/main.py) agora dispara o fluxo completo de preparação + exploração gráfica + classificação, gera um dashboard HTML consolidado em [model/exploration](model/exploration), treina os algoritmos em sequência e persiste o consolidado em [model/classification](model/classification).
-
-Para subir a API, use:
+Instalação das dependências:
 
 ```powershell
-python src/main.py api
+python -m pip install -r requirements.txt
 ```
 
 Saídas geradas em [model](model):
