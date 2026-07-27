@@ -1,0 +1,673 @@
+{
+  "generated_at": "2026-07-25T02:16:48+00:00",
+  "source_path": "D:\\Repos\\Energisa\\imec_analysis\\src\\machine_learning\\resultado_laudo_afericao.xlsx",
+  "target_column": "CODRSTAFER",
+  "field_specs": {
+    "NUMOSM": {
+      "name": "NUMOSM",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'NUMOSM' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "DATAINIAFER": {
+      "name": "DATAINIAFER",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'DATAINIAFER' do laudo de aferição (dtype original: datetime64[ns]; nulos observados: 0.0%)."
+    },
+    "DATATERAFER": {
+      "name": "DATATERAFER",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'DATATERAFER' do laudo de aferição (dtype original: datetime64[ns]; nulos observados: 0.0%)."
+    },
+    "VLRENS_CGA_NMN": {
+      "name": "VLRENS_CGA_NMN",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 7.5,
+      "description": "Coluna 'VLRENS_CGA_NMN' do laudo de aferição (dtype original: float64; nulos observados: 7.5%)."
+    },
+    "VLRENS_CGA_CPC": {
+      "name": "VLRENS_CGA_CPC",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 0.33,
+      "description": "Coluna 'VLRENS_CGA_CPC' do laudo de aferição (dtype original: float64; nulos observados: 0.33%)."
+    },
+    "VLRENS_CGA_IDU": {
+      "name": "VLRENS_CGA_IDU",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 8.35,
+      "description": "Coluna 'VLRENS_CGA_IDU' do laudo de aferição (dtype original: float64; nulos observados: 8.35%)."
+    },
+    "VLRENS_CGA_PQN": {
+      "name": "VLRENS_CGA_PQN",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 11.86,
+      "description": "Coluna 'VLRENS_CGA_PQN' do laudo de aferição (dtype original: float64; nulos observados: 11.86%)."
+    },
+    "RESPAFER": {
+      "name": "RESPAFER",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'RESPAFER' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "OBSAFER": {
+      "name": "OBSAFER",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 48.16,
+      "description": "Coluna 'OBSAFER' do laudo de aferição (dtype original: object; nulos observados: 48.16%)."
+    },
+    "CODPRSERV": {
+      "name": "CODPRSERV",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'CODPRSERV' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "DATALAUDO": {
+      "name": "DATALAUDO",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'DATALAUDO' do laudo de aferição (dtype original: datetime64[ns]; nulos observados: 0.0%)."
+    },
+    "NUMLAUDO": {
+      "name": "NUMLAUDO",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'NUMLAUDO' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "DSCMOD": {
+      "name": "DSCMOD",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'DSCMOD' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "CODFORN": {
+      "name": "CODFORN",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'CODFORN' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "NUMELM": {
+      "name": "NUMELM",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'NUMELM' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "NUMFASE": {
+      "name": "NUMFASE",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'NUMFASE' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "NUMFIO": {
+      "name": "NUMFIO",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'NUMFIO' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "TENSAONOM": {
+      "name": "TENSAONOM",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'TENSAONOM' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "TIPOMDR": {
+      "name": "TIPOMDR",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'TIPOMDR' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "TIPO": {
+      "name": "TIPO",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'TIPO' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "CODTIP_MED": {
+      "name": "CODTIP_MED",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'CODTIP_MED' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "CODLCD_ITC": {
+      "name": "CODLCD_ITC",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'CODLCD_ITC' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "VLRDVI_ELM_A": {
+      "name": "VLRDVI_ELM_A",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'VLRDVI_ELM_A' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "VLRDVI_ELM_B": {
+      "name": "VLRDVI_ELM_B",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'VLRDVI_ELM_B' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "VLRDVI_ELM_C": {
+      "name": "VLRDVI_ELM_C",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'VLRDVI_ELM_C' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "DSCRSTAFER": {
+      "name": "DSCRSTAFER",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'DSCRSTAFER' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "VLRLTR": {
+      "name": "VLRLTR",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'VLRLTR' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "FTRCRC_CGA_NMN_SER": {
+      "name": "FTRCRC_CGA_NMN_SER",
+      "python_type_name": "float",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'FTRCRC_CGA_NMN_SER' do laudo de aferição (dtype original: float64; nulos observados: 0.0%)."
+    },
+    "FTRCRC_CGA_NMN_ELM": {
+      "name": "FTRCRC_CGA_NMN_ELM",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'FTRCRC_CGA_NMN_ELM' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "FTRCRC_CGA_IDU": {
+      "name": "FTRCRC_CGA_IDU",
+      "python_type_name": "float",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'FTRCRC_CGA_IDU' do laudo de aferição (dtype original: float64; nulos observados: 0.0%)."
+    },
+    "FTRCRC_CGA_PQN": {
+      "name": "FTRCRC_CGA_PQN",
+      "python_type_name": "float",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'FTRCRC_CGA_PQN' do laudo de aferição (dtype original: float64; nulos observados: 0.0%)."
+    },
+    "TPRIFR": {
+      "name": "TPRIFR",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'TPRIFR' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "TPRSUP": {
+      "name": "TPRSUP",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'TPRSUP' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "FTRCRC_CGA_NMN_SER_1": {
+      "name": "FTRCRC_CGA_NMN_SER_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'FTRCRC_CGA_NMN_SER_1' do laudo de aferição (dtype original: float64; nulos observados: 98.53%)."
+    },
+    "FTRCRC_CGA_NMN_ELM_1": {
+      "name": "FTRCRC_CGA_NMN_ELM_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'FTRCRC_CGA_NMN_ELM_1' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "FTRCRC_CGA_IDU_1": {
+      "name": "FTRCRC_CGA_IDU_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'FTRCRC_CGA_IDU_1' do laudo de aferição (dtype original: float64; nulos observados: 98.53%)."
+    },
+    "FTRCRC_CGA_PQN_1": {
+      "name": "FTRCRC_CGA_PQN_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'FTRCRC_CGA_PQN_1' do laudo de aferição (dtype original: float64; nulos observados: 98.53%)."
+    },
+    "TPRIFR_1": {
+      "name": "TPRIFR_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'TPRIFR_1' do laudo de aferição (dtype original: float64; nulos observados: 98.53%)."
+    },
+    "TPRSUP_1": {
+      "name": "TPRSUP_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'TPRSUP_1' do laudo de aferição (dtype original: float64; nulos observados: 98.53%)."
+    },
+    "USUARIO_AFER": {
+      "name": "USUARIO_AFER",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'USUARIO_AFER' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "CODPRJ": {
+      "name": "CODPRJ",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'CODPRJ' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "ENSAIO_LAUDO_CORR": {
+      "name": "ENSAIO_LAUDO_CORR",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'ENSAIO_LAUDO_CORR' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "INDRST_ENS_ISP": {
+      "name": "INDRST_ENS_ISP",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'INDRST_ENS_ISP' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "INDRST_ENS_EXD": {
+      "name": "INDRST_ENS_EXD",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 11.9,
+      "description": "Coluna 'INDRST_ENS_EXD' do laudo de aferição (dtype original: object; nulos observados: 11.9%)."
+    },
+    "INDRST_ENS_COR": {
+      "name": "INDRST_ENS_COR",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'INDRST_ENS_COR' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "INDRST_ENS_MRC": {
+      "name": "INDRST_ENS_MRC",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'INDRST_ENS_MRC' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "INDRST_ENS_TNS": {
+      "name": "INDRST_ENS_TNS",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'INDRST_ENS_TNS' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "INDRST_ENS_EXM": {
+      "name": "INDRST_ENS_EXM",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'INDRST_ENS_EXM' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "INDRST_GER": {
+      "name": "INDRST_GER",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'INDRST_GER' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "ENSAIO_LAUDO_MESA": {
+      "name": "ENSAIO_LAUDO_MESA",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 0.27,
+      "description": "Coluna 'ENSAIO_LAUDO_MESA' do laudo de aferição (dtype original: float64; nulos observados: 0.27%)."
+    },
+    "ENSAIO_LAUDO_TEMPERATURA": {
+      "name": "ENSAIO_LAUDO_TEMPERATURA",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'ENSAIO_LAUDO_TEMPERATURA' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "ENSAIO_LAUDO_TEMPERATURA2": {
+      "name": "ENSAIO_LAUDO_TEMPERATURA2",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'ENSAIO_LAUDO_TEMPERATURA2' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "SIT_LACRE": {
+      "name": "SIT_LACRE",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'SIT_LACRE' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "IND_LAUDO_EXTERNO": {
+      "name": "IND_LAUDO_EXTERNO",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 0.27,
+      "description": "Coluna 'IND_LAUDO_EXTERNO' do laudo de aferição (dtype original: float64; nulos observados: 0.27%)."
+    },
+    "INDRST_ENS_CRP": {
+      "name": "INDRST_ENS_CRP",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'INDRST_ENS_CRP' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "VLRENS_CGA_NMN_1": {
+      "name": "VLRENS_CGA_NMN_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 99.0,
+      "description": "Coluna 'VLRENS_CGA_NMN_1' do laudo de aferição (dtype original: float64; nulos observados: 99.0%)."
+    },
+    "VLRENS_CGA_CPC_1": {
+      "name": "VLRENS_CGA_CPC_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 98.54,
+      "description": "Coluna 'VLRENS_CGA_CPC_1' do laudo de aferição (dtype original: float64; nulos observados: 98.54%)."
+    },
+    "VLRENS_CGA_IDU_1": {
+      "name": "VLRENS_CGA_IDU_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 99.0,
+      "description": "Coluna 'VLRENS_CGA_IDU_1' do laudo de aferição (dtype original: float64; nulos observados: 99.0%)."
+    },
+    "VLRENS_CGA_PQN_1": {
+      "name": "VLRENS_CGA_PQN_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 99.0,
+      "description": "Coluna 'VLRENS_CGA_PQN_1' do laudo de aferição (dtype original: float64; nulos observados: 99.0%)."
+    },
+    "VLRDVI_ELM_A_1": {
+      "name": "VLRDVI_ELM_A_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 99.99,
+      "description": "Coluna 'VLRDVI_ELM_A_1' do laudo de aferição (dtype original: float64; nulos observados: 99.99%)."
+    },
+    "VLRDVI_ELM_B_1": {
+      "name": "VLRDVI_ELM_B_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'VLRDVI_ELM_B_1' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "VLRDVI_ELM_C_1": {
+      "name": "VLRDVI_ELM_C_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'VLRDVI_ELM_C_1' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "VLRLTR_1": {
+      "name": "VLRLTR_1",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'VLRLTR_1' do laudo de aferição (dtype original: object; nulos observados: 98.53%)."
+    },
+    "INDRST_ENS_ISP_1": {
+      "name": "INDRST_ENS_ISP_1",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'INDRST_ENS_ISP_1' do laudo de aferição (dtype original: object; nulos observados: 98.53%)."
+    },
+    "INDRST_ENS_EXD_1": {
+      "name": "INDRST_ENS_EXD_1",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 99.0,
+      "description": "Coluna 'INDRST_ENS_EXD_1' do laudo de aferição (dtype original: object; nulos observados: 99.0%)."
+    },
+    "INDRST_ENS_COR_1": {
+      "name": "INDRST_ENS_COR_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'INDRST_ENS_COR_1' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "INDRST_ENS_MRC_1": {
+      "name": "INDRST_ENS_MRC_1",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'INDRST_ENS_MRC_1' do laudo de aferição (dtype original: object; nulos observados: 98.53%)."
+    },
+    "INDRST_ENS_TNS_1": {
+      "name": "INDRST_ENS_TNS_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'INDRST_ENS_TNS_1' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "INDRST_ENS_EXM_1": {
+      "name": "INDRST_ENS_EXM_1",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'INDRST_ENS_EXM_1' do laudo de aferição (dtype original: object; nulos observados: 98.53%)."
+    },
+    "INDRST_GER_1": {
+      "name": "INDRST_GER_1",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'INDRST_GER_1' do laudo de aferição (dtype original: object; nulos observados: 98.53%)."
+    },
+    "INDRST_ENS_CRP_1": {
+      "name": "INDRST_ENS_CRP_1",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'INDRST_ENS_CRP_1' do laudo de aferição (dtype original: object; nulos observados: 98.53%)."
+    },
+    "VLRLTR_MAN_KWH": {
+      "name": "VLRLTR_MAN_KWH",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'VLRLTR_MAN_KWH' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "VLRLTR_MAN_KVARH": {
+      "name": "VLRLTR_MAN_KVARH",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 100.0,
+      "description": "Coluna 'VLRLTR_MAN_KVARH' do laudo de aferição (dtype original: float64; nulos observados: 100.0%)."
+    },
+    "CODFTR_CRC": {
+      "name": "CODFTR_CRC",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'CODFTR_CRC' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "CODFTR_CRC_1": {
+      "name": "CODFTR_CRC_1",
+      "python_type_name": "float",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'CODFTR_CRC_1' do laudo de aferição (dtype original: float64; nulos observados: 98.53%)."
+    },
+    "DAT_ENVIO_AFERICAO": {
+      "name": "DAT_ENVIO_AFERICAO",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'DAT_ENVIO_AFERICAO' do laudo de aferição (dtype original: datetime64[ns]; nulos observados: 0.0%)."
+    },
+    "DAT_RETORNO_AFERICAO": {
+      "name": "DAT_RETORNO_AFERICAO",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'DAT_RETORNO_AFERICAO' do laudo de aferição (dtype original: datetime64[ns]; nulos observados: 0.0%)."
+    },
+    "NUM_INVOLUCRO_EQPTO_MDCAO": {
+      "name": "NUM_INVOLUCRO_EQPTO_MDCAO",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'NUM_INVOLUCRO_EQPTO_MDCAO' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    },
+    "NUM_INVOLUCRO": {
+      "name": "NUM_INVOLUCRO",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'NUM_INVOLUCRO' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "LEITURA_KWH": {
+      "name": "LEITURA_KWH",
+      "python_type_name": "str",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'LEITURA_KWH' do laudo de aferição (dtype original: object; nulos observados: 0.0%)."
+    },
+    "COD_VERIFICADOR_LAUDO": {
+      "name": "COD_VERIFICADOR_LAUDO",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 0.27,
+      "description": "Coluna 'COD_VERIFICADOR_LAUDO' do laudo de aferição (dtype original: object; nulos observados: 0.27%)."
+    },
+    "LEITURA_KVARH": {
+      "name": "LEITURA_KVARH",
+      "python_type_name": "str",
+      "nullable": true,
+      "null_pct": 98.53,
+      "description": "Coluna 'LEITURA_KVARH' do laudo de aferição (dtype original: object; nulos observados: 98.53%)."
+    },
+    "SEQ_NUMLAUDO": {
+      "name": "SEQ_NUMLAUDO",
+      "python_type_name": "int",
+      "nullable": false,
+      "null_pct": 0.0,
+      "description": "Coluna 'SEQ_NUMLAUDO' do laudo de aferição (dtype original: int64; nulos observados: 0.0%)."
+    }
+  },
+  "example_row": {
+    "NUMOSM": 690371,
+    "DATAINIAFER": "2025-10-24 09:27:22",
+    "DATATERAFER": "2025-10-28 10:35:02",
+    "VLRENS_CGA_NMN": -0.03,
+    "VLRENS_CGA_CPC": 0.0,
+    "VLRENS_CGA_IDU": -0.05,
+    "VLRENS_CGA_PQN": -0.07,
+    "RESPAFER": 2,
+    "OBSAFER": "Medidor com defeito no display.",
+    "CODPRSERV": 2,
+    "DATALAUDO": "2025-10-28 10:35:02",
+    "NUMLAUDO": 2025006988,
+    "DSCMOD": "VECTOR 3 PAR TRI BID",
+    "CODFORN": 14,
+    "NUMELM": 3,
+    "NUMFASE": 3,
+    "NUMFIO": 4,
+    "TENSAONOM": 120,
+    "TIPOMDR": "E",
+    "TIPO": "T",
+    "CODTIP_MED": "D",
+    "CODLCD_ITC": 10,
+    "VLRDVI_ELM_A": null,
+    "VLRDVI_ELM_B": null,
+    "VLRDVI_ELM_C": null,
+    "DSCRSTAFER": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, o TLI (Terminal de Leitura Individual) não foi apresentado junto ao medidor, porém não influencia no registro do consumo, com defeito em relação as características de fabricação.",
+    "VLRLTR": 6116,
+    "FTRCRC_CGA_NMN_SER": 1.3,
+    "FTRCRC_CGA_NMN_ELM": null,
+    "FTRCRC_CGA_IDU": 1.3,
+    "FTRCRC_CGA_PQN": 1.3,
+    "TPRIFR": 20,
+    "TPRSUP": 30,
+    "FTRCRC_CGA_NMN_SER_1": 2.6,
+    "FTRCRC_CGA_NMN_ELM_1": null,
+    "FTRCRC_CGA_IDU_1": 2.6,
+    "FTRCRC_CGA_PQN_1": 2.6,
+    "TPRIFR_1": 20.0,
+    "TPRSUP_1": 30.0,
+    "USUARIO_AFER": "RS54",
+    "CODPRJ": null,
+    "ENSAIO_LAUDO_CORR": null,
+    "INDRST_ENS_ISP": "R",
+    "INDRST_ENS_EXD": "A",
+    "INDRST_ENS_COR": null,
+    "INDRST_ENS_MRC": "A",
+    "INDRST_ENS_TNS": null,
+    "INDRST_ENS_EXM": "A",
+    "INDRST_GER": "R",
+    "ENSAIO_LAUDO_MESA": 4.0,
+    "ENSAIO_LAUDO_TEMPERATURA": 23,
+    "ENSAIO_LAUDO_TEMPERATURA2": 26,
+    "SIT_LACRE": "APROVADO",
+    "IND_LAUDO_EXTERNO": 1.0,
+    "INDRST_ENS_CRP": "A",
+    "VLRENS_CGA_NMN_1": -0.02,
+    "VLRENS_CGA_CPC_1": 0.0,
+    "VLRENS_CGA_IDU_1": 0.06,
+    "VLRENS_CGA_PQN_1": 0.0,
+    "VLRDVI_ELM_A_1": null,
+    "VLRDVI_ELM_B_1": null,
+    "VLRDVI_ELM_C_1": null,
+    "VLRLTR_1": "4859",
+    "INDRST_ENS_ISP_1": "R",
+    "INDRST_ENS_EXD_1": "A",
+    "INDRST_ENS_COR_1": null,
+    "INDRST_ENS_MRC_1": "A",
+    "INDRST_ENS_TNS_1": null,
+    "INDRST_ENS_EXM_1": "A",
+    "INDRST_GER_1": "R",
+    "INDRST_ENS_CRP_1": "A",
+    "VLRLTR_MAN_KWH": null,
+    "VLRLTR_MAN_KVARH": null,
+    "CODFTR_CRC": 3,
+    "CODFTR_CRC_1": 4.0,
+    "DAT_ENVIO_AFERICAO": "2025-10-24 09:27:46",
+    "DAT_RETORNO_AFERICAO": "2025-10-28 10:35:02",
+    "NUM_INVOLUCRO_EQPTO_MDCAO": 164359,
+    "NUM_INVOLUCRO": "164359",
+    "LEITURA_KWH": "6116",
+    "COD_VERIFICADOR_LAUDO": "348414b28",
+    "LEITURA_KVARH": "4859",
+    "SEQ_NUMLAUDO": 6988
+  }
+}

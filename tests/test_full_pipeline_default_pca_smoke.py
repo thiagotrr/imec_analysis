@@ -44,6 +44,11 @@ def test_full_pipeline_with_default_pca_resampling_cv_and_search(
         target_column=TARGET_COLUMN,
         output_dir=tmp_path,
         min_class_percentage=15.0,
+        # Este smoke test cobre deliberadamente CatBoost+XGBoost x nenhum/SMOTE/ADASYN
+        # (escopo herdado da Task 05 v3) — por isso informa `algorithm_order`
+        # explicitamente, já que a partir da Task 006 o padrão passa a ser
+        # somente XGBoost (ver `classification.models.DEFAULT_CLASSIFIER_ORDER`).
+        algorithm_order=("catboost", "xgboost"),
         resampling_strategies=(None, "smote", "adasyn"),
         enable_cross_validation=True,
         cross_validation_folds=3,

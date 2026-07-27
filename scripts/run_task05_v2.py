@@ -61,10 +61,16 @@ def main() -> None:
     print("Task 05 v2 — Fase 1: CatBoost/XGBoost + busca de hiperparâmetros")
     print("=" * 60)
     phase1_config = ClassificationConfig(
+        # Ver nota em run_task05_v3.py: a Task 006 mudou os defaults de
+        # `algorithm_order`/`resampling_strategies` para XGBoost+SMOTE; este
+        # script preserva seu escopo histórico (comparar CatBoost x XGBoost)
+        # informando `algorithm_order` explicitamente.
+        algorithm_order=("catboost", "xgboost"),
         enable_hyperparameter_search=True,
         resampling_strategies=(None,),
         enable_cross_validation=False,
         persist_artifacts=True,
+        compile_artifacts=False,
     )
     phase1 = run_classification_workflow(config=phase1_config)
     if phase1.artifacts is not None:
@@ -91,11 +97,13 @@ def main() -> None:
         print("Task 05 v2 — Fase 2: SMOTE/ADASYN + StratifiedKFold")
         print("=" * 60)
         phase2_config = ClassificationConfig(
+            algorithm_order=("catboost", "xgboost"),
             enable_hyperparameter_search=False,
             resampling_strategies=(None, "smote", "adasyn"),
             enable_cross_validation=True,
             cross_validation_folds=5,
             persist_artifacts=True,
+            compile_artifacts=False,
         )
         phase2 = run_classification_workflow(config=phase2_config)
         if phase2.artifacts is not None:

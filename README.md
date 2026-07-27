@@ -20,7 +20,7 @@ O pacote [src/machine_learning](src/machine_learning) agora separa três etapas:
 
 - [src/machine_learning/feature_engineering.py](src/machine_learning/feature_engineering.py): perfilamento do dataset e recomendações heurísticas de colunas.
 - [src/machine_learning/data_preparation.py](src/machine_learning/data_preparation.py): limpeza, imputação, encoding, scaling, redução de dimensionalidade e persistência dos artefatos de pré-processamento.
-- [src/machine_learning/classification](src/machine_learning/classification): treino sequencial dos classificadores do pipeline padrão — **CatBoost e XGBoost** — com cálculo e consolidação de métricas. k-NN e SVM continuam implementados em [`models.py`](src/machine_learning/classification/models.py) (`build_classifier_registry`) para uso experimental/comparativo, mas foram descontinuados do fluxo padrão (`DEFAULT_CLASSIFIER_ORDER`) por apresentarem desempenho inferior nesse problema; podem ser reativados informando `algorithm_order` em `ClassificationConfig`.
+- [src/machine_learning/classification](src/machine_learning/classification): treino do classificador padrão do pipeline — **XGBoost** (com resampling/SMOTE, ver seção abaixo) — com cálculo e consolidação de métricas. CatBoost, k-NN e SVM continuam implementados em [`models.py`](src/machine_learning/classification/models.py) (`build_classifier_registry`) e disponíveis para uso experimental/comparativo, mas ficam fora do fluxo padrão (`DEFAULT_CLASSIFIER_ORDER`); podem ser reativados informando `algorithm_order` em `ClassificationConfig`.
 
 Durante a preparação, o pipeline também gera artefatos de data exploration em [model/exploration](model/exploration):
 
@@ -53,6 +53,69 @@ Saídas geradas em [model](model):
 - encoder do target, quando necessário
 - resumo consolidado das métricas de classificação em CSV
 - detalhes da avaliação por algoritmo em JSON
+
+### Fluxo de preparação e exploração de dados
+
+Visão sintética da ordem real das etapas — do dataset bruto (`.xlsx`) até os artefatos persistidos em [model](model) e [model/exploration](model/exploration):
+
+```mermaid
+sequenceDiagram
+    participant Dataset as Dataset (xlsx)
+    participant DP as data_preparation
+    participant FE as feature_engineering
+    participant DE as data_exploration
+    participant CWR as class_weight_registry.json
+    participant PP as preprocessing_pipeline.pkl
+    participant CLS as classification (resampling + treino)
+
+    Dataset->>DP: load_dataset()
+    DP->>DP: normalize_string_columns + remove duplicatas + drop linhas com target nulo
+    DP->>FE: compute_class_distribution / qualify_class_distribution (antes do expurgo)
+    FE-->>DP: distribuição por camada A/B/C/D (CLASS_TIER_THRESHOLDS)
+    DP->>FE: filter_classes_by_percentage (expurga classes da camada D)
+    FE-->>DP: training_frame + metadata do expurgo
+    DP->>FE: build_class_weight_registry (a partir da distribuição pré-expurgo)
+    FE-->>CWR: registro de pesos e camadas por classe (persistido ao final)
+    DP->>DE: generate_exploration_artifacts(cleaned_frame)
+    Note right of DE: usa o frame limpo (antes do expurgo de<br/>colunas heurísticas), pulando as colunas de<br/>MANUALLY_REMOVED_FEATURES via get_manually_removed_features
+    DE-->>DP: histogramas, dispersão/boxplot vs. target, matriz de correlação, dashboard HTML
+    DP->>FE: get_feature_recommendations (heurísticas de drop/scale/encode)
+    DP->>DP: drop colunas heurísticas + constantes + altamente correlacionadas
+    DP->>DP: fit_preprocessor (imputação, scaling, one-hot encoding, PCA/TruncatedSVD)
+    DP-->>PP: serializa preprocessing_pipeline.pkl
+    DP->>DP: transform_dataset + monta prepared_training_dataset.csv
+    DP-->>CLS: dataset preparado + class_weight_registry
+    CLS->>CLS: split treino/teste estratificado
+    CLS->>CLS: wrap_with_resampling (SMOTE aplicado somente no treino)
+    CLS->>CLS: treino do algoritmo padrão (XGBoost) + cálculo de métricas
+```
+
+### Qualificação de classes (`model/class_weight_registry.json`)
+
+Artefato persistido junto aos demais outputs de [model](model) (não é descartável como o conteúdo de [model/exploration](model/exploration)): classifica cada classe do target `CODRSTAFER` em uma camada de representatividade — **A**, **B**, **C** ou **D** — e registra, por classe retida, contagem, percentual sobre o total de linhas e peso balanceado (`weight`, mesma fórmula do `class_weight="balanced"` do scikit-learn). Os limiares percentuais que definem cada camada vêm de uma única fonte, `CLASS_TIER_THRESHOLDS` em [src/machine_learning/feature_engineering.py](src/machine_learning/feature_engineering.py). Classes da camada **D** (cauda estatística, sem volume suficiente para qualquer técnica de modelagem/augmentation) são descartadas do treino. O registro serve tanto para auditoria do expurgo quanto como insumo futuro para uma narrativa via LLM sobre a confiabilidade esperada da predição, com base na camada/peso da classe prevista.
+
+### Features removidas manualmente
+
+A lista de colunas descartadas por análise manual/domínio de negócio (ruído, redundância ou baixo valor preditivo) é centralizada em `MANUALLY_REMOVED_FEATURES`, em [src/machine_learning/feature_engineering.py](src/machine_learning/feature_engineering.py). Essa mesma lista é reaproveitada em dois pontos do pipeline: no drop de colunas antes do fit do pipeline de pré-processamento (`data_preparation.py`) e na exploração gráfica (`data_exploration.py`, via `get_manually_removed_features`), para não gerar histogramas/dispersão dessas colunas.
+
+```text
+VLRENS_CGA_NMN, VLRENS_CGA_CPC, RESPAFER, CODPRSERV,
+VLRDVI_ELM_A, VLRDVI_ELM_B, VLRDVI_ELM_C, FTRCRC_CGA_NMN_ELM,
+TPRIFR, TPRSUP, FTRCRC_CGA_NMN_ELM_1, TPRIFR_1, TPRSUP_1,
+CODPRJ, ENSAIO_LAUDO_CORR, INDRST_ENS_COR, INDRST_ENS_TNS,
+ENSAIO_LAUDO_MESA, ENSAIO_LAUDO_TEMPERATURA, ENSAIO_LAUDO_TEMPERATURA2,
+IND_LAUDO_EXTERNO, VLRENS_CGA_CPC_1, VLRDVI_ELM_B_1, VLRDVI_ELM_C_1,
+INDRST_ENS_COR_1, INDRST_ENS_TNS_1, VLRLTR_MAN_KWH, VLRLTR_MAN_KVARH,
+VLR_LTR_MAN_KVARH, SEQ_NUMLAUDO
+```
+
+### Data augmentation (SMOTE)
+
+Classes minoritárias (camadas B/C) passam por oversampling via **SMOTE** (biblioteca `imbalanced-learn`), aplicado **somente ao conjunto de treino** — nunca ao teste — em [src/machine_learning/classification/resampling.py](src/machine_learning/classification/resampling.py) (`wrap_with_resampling`), que encapsula o estimador em um `Pipeline` do `imbalanced-learn`: o resampling só roda dentro de `.fit()`, mantendo `.predict()`/`.predict_proba()` intocados. Essa separação treino/teste é uma das principais distinções deste pipeline.
+
+### Etapas padrão de preparação
+
+Completam o pipeline, sem maiores detalhes por ora: limpeza/normalização de strings, remoção de duplicatas, imputação de nulos, encoding de categóricas (one-hot), padronização/scaling de numéricas, redução de dimensionalidade (PCA ou TruncatedSVD, conforme densidade dos dados) e split treino/teste estratificado.
 
 ```mermaid
 flowchart LR

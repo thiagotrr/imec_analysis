@@ -11,6 +11,16 @@ from .hyperparameter_search import (
     run_hyperparameter_search,
 )
 from .metrics import ClassificationMetrics, compute_classification_metrics, format_classification_metrics
+from .model_compilation import (
+    CHAMPION_STEM,
+    DEFAULT_COMPILED_DIRNAME,
+    RESAMPLING_LABEL_NONE,
+    CompiledModelArtifact,
+    ModelCompilationSummary,
+    compile_classification_results,
+    compile_model_artifact,
+    get_compiled_model_dir,
+)
 from .models import (
     DEFAULT_CATBOOST_PARAMS,
     DEFAULT_CLASSIFIER_ORDER,
@@ -33,15 +43,18 @@ from .workflow import (
 
 __all__ = [
     "CATBOOST_PARAM_DISTRIBUTIONS",
+    "CHAMPION_STEM",
     "ClassificationArtifacts",
     "ClassificationConfig",
     "ClassificationMetrics",
     "ClassificationResult",
     "ClassificationWorkflowResult",
+    "CompiledModelArtifact",
     "DEFAULT_CATBOOST_PARAMS",
     "DEFAULT_CLASSIFICATION_DIRNAME",
     "DEFAULT_CLASSIFICATION_SUMMARY_FILENAME",
     "DEFAULT_CLASSIFIER_ORDER",
+    "DEFAULT_COMPILED_DIRNAME",
     "DEFAULT_CV_FOLDS",
     "DEFAULT_CV_SCORING",
     "DEFAULT_MIN_CLASS_COUNT",
@@ -52,12 +65,17 @@ __all__ = [
     "DEFAULT_XGBOOST_PARAMS",
     "HYPERPARAMETER_SEARCH_SUPPORTED_ALGORITHMS",
     "HyperparameterSearchResult",
+    "ModelCompilationSummary",
+    "RESAMPLING_LABEL_NONE",
     "RESAMPLING_STRATEGIES",
     "XGBOOST_PARAM_DISTRIBUTIONS",
     "build_classifier_registry",
     "build_sampler",
+    "compile_classification_results",
+    "compile_model_artifact",
     "compute_classification_metrics",
     "format_classification_metrics",
+    "get_compiled_model_dir",
     "get_param_distributions",
     "run_classification_workflow",
     "run_classifier_training",

@@ -41,10 +41,20 @@ def main() -> None:
     print("Task 05 v3 - CatBoost/XGBoost + SMOTE/ADASYN + StratifiedKFold (k=5)", flush=True)
     print("=" * 60, flush=True)
     config = ClassificationConfig(
+        # A Task 006 mudou o PADRÃO de `algorithm_order`/`resampling_strategies`
+        # para XGBoost+SMOTE apenas (ver `classification.models.DEFAULT_CLASSIFIER_ORDER`
+        # e `ClassificationConfig.resampling_strategies`); este script documenta
+        # explicitamente o escopo histórico da v3 (comparar CatBoost x XGBoost
+        # nos 3 cenários de resampling), por isso informa os dois parâmetros
+        # explicitamente em vez de depender dos novos defaults.
+        algorithm_order=("catboost", "xgboost"),
         enable_hyperparameter_search=False,
         resampling_strategies=(None, "smote", "adasyn"),
         enable_cross_validation=False,
         persist_artifacts=True,
+        # A compilação de modelos (`.pkl` em `model/compiled/`) é uma etapa nova
+        # da Task 006, fora do escopo desta rodada comparativa da v3.
+        compile_artifacts=False,
     )
     result = run_classification_workflow(config=config)
 
