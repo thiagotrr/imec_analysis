@@ -157,6 +157,8 @@ def test_openapi_schema_includes_all_four_endpoints_with_expected_tag(client: Te
     assert response.status_code == 200
     schema = response.json()
 
+    assert "/analise_inspecao" not in schema["paths"]
+
     expected_operations = {
         ("/inspecao/laudo_completo", "post"),
         ("/inspecao/laudo_sintetico", "post"),
@@ -164,8 +166,10 @@ def test_openapi_schema_includes_all_four_endpoints_with_expected_tag(client: Te
         ("/inspecao/modelos", "get"),
     }
     found_operations = set()
+    all_tags: set[str] = set()
     for path, methods in schema["paths"].items():
         for method, operation in methods.items():
+            all_tags.update(operation.get("tags", []))
             if (path, method) in expected_operations:
                 found_operations.add((path, method))
                 assert TAG in operation.get("tags", [])
@@ -174,6 +178,10 @@ def test_openapi_schema_includes_all_four_endpoints_with_expected_tag(client: Te
                 assert "422" in operation.get("responses", {}) or "500" in operation.get("responses", {})
 
     assert found_operations == expected_operations
+    assert all_tags == {TAG}
+    assert "Análise de Inspeção de Medidor de Consumo" not in {
+        tag.get("name") for tag in schema.get("tags", [])
+    }
 
 
 def test_docs_endpoint_is_served(client: TestClient) -> None:
