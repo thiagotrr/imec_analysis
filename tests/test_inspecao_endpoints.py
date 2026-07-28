@@ -12,13 +12,15 @@ from api.main import app
 from api.inspecao_request_model import LaudoCompletoRequest, LaudoSinteticoRequest
 from api.inspecao_response_model import ModeloInfoResponse
 from api.inspecao_services import obter_info_modelos
+from api.model_runtime import ModelRuntimeError
 
 TAG = "Inspeção de Medidor de Consumo"
 
 
 @pytest.fixture()
 def client() -> TestClient:
-    return TestClient(app)
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 def _laudo_completo_example() -> dict[str, object]:
@@ -29,16 +31,32 @@ def _laudo_sintetico_example() -> dict[str, object]:
     return dict(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
 
 
+def _assert_successful_inspecao_payload(payload: dict[str, object]) -> None:
+    assert payload.get("classe_prevista")
+    assert payload.get("camada") in {"A", "B", "C", "D"}
+    assert isinstance(payload.get("resultado"), str) and payload["resultado"]
+    assert isinstance(payload.get("resultado_detalhado"), str) and payload["resultado_detalhado"]
+    assert "predict_proba" in payload
+    if payload["camada"] == "D":
+        assert payload["resultado"] == "Revisão manual"
+    else:
+        assert payload["classe_prevista"] in payload["resultado"]
+        assert payload["camada"] in payload["resultado"]
+
+
 # ---------------------------------------------------------------------------
 # POST /inspecao/laudo_completo
 # ---------------------------------------------------------------------------
 
 
-def test_laudo_completo_valid_payload_returns_documented_500_stub(client: TestClient) -> None:
+def test_laudo_completo_valid_payload_returns_200_with_inference(client: TestClient) -> None:
+    if getattr(client.app.state, "runtime", None) is None:
+        pytest.skip("Runtime de inferência não carregado (artefatos ausentes)")
+
     response = client.post("/inspecao/laudo_completo", json=_laudo_completo_example())
 
-    assert response.status_code == 500
-    assert "não implementado" in response.json()["detail"]
+    assert response.status_code == 200
+    _assert_successful_inspecao_payload(response.json())
 
 
 def test_laudo_completo_invalid_payload_returns_422(client: TestClient) -> None:
@@ -47,16 +65,31 @@ def test_laudo_completo_invalid_payload_returns_422(client: TestClient) -> None:
     assert response.status_code == 422
 
 
+def test_laudo_completo_without_runtime_returns_500(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(client.app.state, "runtime", None)
+
+    response = client.post("/inspecao/laudo_completo", json=_laudo_completo_example())
+
+    assert response.status_code == 500
+    assert "Runtime" in response.json()["detail"] or "artefato" in response.json()["detail"].lower() or "indisponível" in response.json()["detail"].lower()
+
+
 # ---------------------------------------------------------------------------
 # POST /inspecao/laudo_sintetico
 # ---------------------------------------------------------------------------
 
 
-def test_laudo_sintetico_valid_payload_returns_documented_500_stub(client: TestClient) -> None:
+def test_laudo_sintetico_valid_payload_returns_200_with_inference(client: TestClient) -> None:
+    if getattr(client.app.state, "runtime", None) is None:
+        pytest.skip("Runtime de inferência não carregado (artefatos ausentes)")
+
     response = client.post("/inspecao/laudo_sintetico", json=_laudo_sintetico_example())
 
-    assert response.status_code == 500
-    assert "não implementado" in response.json()["detail"]
+    assert response.status_code == 200
+    _assert_successful_inspecao_payload(response.json())
+    proba = response.json()["predict_proba"]
+    assert isinstance(proba, dict)
+    assert abs(sum(proba.values()) - 1.0) < 1e-3 or len(proba) > 0
 
 
 def test_laudo_sintetico_invalid_payload_returns_422(client: TestClient) -> None:
@@ -79,13 +112,21 @@ def _build_csv_bytes(rows: list[dict[str, object]]) -> bytes:
     return buffer.getvalue().encode("utf-8")
 
 
-def test_csv_upload_with_valid_rows_returns_documented_500_stub(client: TestClient) -> None:
-    csv_bytes = _build_csv_bytes([_laudo_completo_example()])
+def test_csv_upload_with_valid_rows_returns_200_with_inference(client: TestClient) -> None:
+    if getattr(client.app.state, "runtime", None) is None:
+        pytest.skip("Runtime de inferência não carregado (artefatos ausentes)")
+
+    csv_bytes = _build_csv_bytes([_laudo_completo_example(), _laudo_completo_example()])
 
     response = client.post("/inspecao/csv", files={"arquivo": ("laudos.csv", csv_bytes, "text/csv")})
 
-    assert response.status_code == 500
-    assert "não implementado" in response.json()["detail"]
+    assert response.status_code == 200
+    items = response.json()
+    assert len(items) == 2
+    assert items[0]["numero_linha"] == 1
+    assert items[1]["numero_linha"] == 2
+    for item in items:
+        _assert_successful_inspecao_payload(item)
 
 
 def test_csv_upload_with_invalid_row_returns_422_with_per_row_errors(client: TestClient) -> None:
@@ -183,7 +224,14 @@ def test_openapi_schema_includes_all_four_endpoints_with_expected_tag(client: Te
         tag.get("name") for tag in schema.get("tags", [])
     }
 
+    inspecao_schema = schema["components"]["schemas"]["InspecaoLaudoResponse"]
+    assert "predict_proba" in inspecao_schema["properties"]
+
 
 def test_docs_endpoint_is_served(client: TestClient) -> None:
     response = client.get("/docs")
     assert response.status_code == 200
+
+
+def test_model_runtime_error_is_public() -> None:
+    assert issubclass(ModelRuntimeError, RuntimeError)

@@ -106,9 +106,9 @@ CSV: `infer_one` por linha + `numero_linha`.
 
 ---
 
-## 9. Decisões abertas
+## 9. Decisões (fechadas na implementação)
 
-1. **Classe D / fora do registry:** preferência — HTTP 200 + `resultado="Revisão manual"`.
-2. **Fail-fast no lifespan** vs API sobe e devolve 500 só nas rotas de análise.
-3. **Texto curto de `resultado`:** glossário negócio vs string genérica com código+camada.
-4. **Score/`predict_proba`:** só em `resultado_detalhado` (sem mudar schema) vs estender response model.
+1. **Classe D / fora do registry:** HTTP 200 + `resultado="Revisão manual"`.
+2. **Sem `pkl` compilado:** API sobe; rotas de análise devolvem 500; `GET /inspecao/modelos` permanece 200.
+3. **Texto curto de `resultado`:** `Classe {código} (camada {A|B|C})`.
+4. **`predict_proba`:** campo `predict_proba: dict[str, float] | null` em `InspecaoLaudoResponse` (+ menção no `resultado_detalhado`).

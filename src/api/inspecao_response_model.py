@@ -1,4 +1,4 @@
-"""Contratos Pydantic de resposta dos endpoints de inspeção de medidor (Task 006, §2.4/§3)."""
+"""Contratos Pydantic de resposta dos endpoints de inspeção de medidor (Task 006/007)."""
 from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -6,26 +6,22 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class InspecaoLaudoResponse(BaseModel):
     """Resposta dos endpoints de análise de laudo (`/inspecao/laudo_completo`,
-    `/inspecao/laudo_sintetico` e cada item de `/inspecao/csv`).
-
-    Nesta task NENHUM destes campos é populado por lógica de inferência real
-    (ver docs/task006_proximos_passos.md, §4 "Fora do escopo") — o contrato
-    de resposta é desenhado agora para já refletir o formato esperado pela
-    futura task de "services", mas os handlers atuais são stubs que
-    levantam `NotImplementedError` (convertido em HTTP 500, ver
-    `inspecao_router.py`)."""
+    `/inspecao/laudo_sintetico` e cada item de `/inspecao/csv`)."""
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "numero_laudo": "2025006988",
-                "classe_prevista": None,
-                "camada": None,
-                "resultado": "Não implementado",
+                "classe_prevista": "10",
+                "camada": "A",
+                "resultado": "Classe 10 (camada A)",
                 "resultado_detalhado": (
-                    "Service de inferência ainda não implementado — ver "
-                    "docs/task006_proximos_passos.md, §4."
+                    "Classe prevista: 10 (camada A). Camada A: classe dominante no histórico "
+                    "de treino (≥15% das amostras) — sinal de maior confiabilidade estatística. "
+                    "Peso balanceado da classe no treino: 0.153795. "
+                    "Probabilidade da classe prevista (predict_proba): 0.9123."
                 ),
+                "predict_proba": {"10": 0.9123, "1": 0.0412, "165": 0.0101},
             }
         }
     )
@@ -38,40 +34,47 @@ class InspecaoLaudoResponse(BaseModel):
         default=None,
         description=(
             "Classe prevista pelo modelo para `CODRSTAFER` (rótulo original, decodificado via "
-            "`target_encoder.pkl`). `None` enquanto o service de inferência não estiver implementado."
+            "`target_encoder.pkl` ou `champion.json → target_classes`)."
         ),
     )
     camada: str | None = Field(
         default=None,
         description=(
-            "Camada de qualificação (A/B/C/D, ver `feature_engineering.CLASS_TIER_THRESHOLDS`) da "
-            "classe prevista, conforme `model/class_weight_registry.json` — insumo para a futura "
-            "narrativa de confiabilidade via LLM (ver docs/task006_proximos_passos.md, §2.4/§4)."
+            "Camada de qualificação (A/B/C/D) da classe prevista, conforme "
+            "`model/class_weight_registry.json`."
         ),
     )
-    resultado: str = Field(..., description="Resultado resumido da inspeção (ex.: 'Aprovado', 'Reprovado', 'Revisão manual').")
+    resultado: str = Field(
+        ...,
+        description=(
+            "Resultado resumido: 'Classe {código} (camada {A|B|C})' ou "
+            "'Revisão manual' quando a classe é D / fora do registry."
+        ),
+    )
     resultado_detalhado: str = Field(
         ...,
         description=(
-            "Texto detalhado da análise. Campo reservado para a futura narrativa de "
-            "confiabilidade/camada gerada via LLM a partir de `class_weight_registry.json` "
-            "(ver docs/task006_proximos_passos.md, §2.4 e §4) — nesta task, apenas descreve "
-            "por que a inferência real ainda não está disponível."
+            "Texto detalhado da análise (template A–C citando camada/peso e, quando disponível, "
+            "a probabilidade da classe prevista)."
+        ),
+    )
+    predict_proba: dict[str, float] | None = Field(
+        default=None,
+        description=(
+            "Distribuição de probabilidades por rótulo original de `CODRSTAFER` "
+            "(saída de `champion.predict_proba`), quando o modelo expõe essa API."
         ),
     )
 
 
 class InspecaoLaudoCsvItemResponse(InspecaoLaudoResponse):
-    """Item de resposta do upload em lote (`/inspecao/csv`) — estende
-    `InspecaoLaudoResponse` com a posição da linha no CSV recebido, para o
-    consumidor conseguir relacionar cada resultado à linha de origem."""
+    """Item de resposta do upload em lote (`/inspecao/csv`)."""
 
     numero_linha: int = Field(..., description="Número da linha no CSV recebido (1-based, sem contar o cabeçalho).")
 
 
 class ModeloInfoAlgoritmoResponse(BaseModel):
-    """Metadados de UMA combinação algoritmo+resampling compilada (espelha o
-    `.json` gerado por `classification.model_compilation.compile_model_artifact`)."""
+    """Metadados de UMA combinação algoritmo+resampling compilada."""
 
     algorithm: str = Field(..., description="Nome do algoritmo (ex.: 'xgboost', 'catboost').")
     resampling: str = Field(..., description="Estratégia de resampling usada no treino ('none', 'smote' ou 'adasyn').")
@@ -83,18 +86,12 @@ class ModeloInfoAlgoritmoResponse(BaseModel):
         default=None, description="Número de colunas de entrada esperadas pelo `preprocessing_pipeline.pkl`."
     )
     target_classes: list[str] | None = Field(
-        default=None, description="Rótulos originais de `CODRSTAFER` suportados por este modelo (via `target_encoder.pkl`)."
+        default=None, description="Rótulos originais de `CODRSTAFER` suportados por este modelo."
     )
 
 
 class ModeloInfoResponse(BaseModel):
-    """Resposta de `GET /inspecao/modelos`: metadados do(s) modelo(s)
-    compilado(s) disponíveis em `model/compiled/` (ver
-    `scripts/compile_models.py`) — útil para consumidores validarem
-    compatibilidade (colunas/classes esperadas) antes de chamar os demais
-    endpoints. Diferente dos outros 3 endpoints, este É totalmente
-    implementado nesta task (apenas leitura de metadados já persistidos em
-    disco, sem nenhuma inferência)."""
+    """Resposta de `GET /inspecao/modelos`: metadados do(s) modelo(s) compilado(s)."""
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -123,12 +120,12 @@ class ModeloInfoResponse(BaseModel):
         description="Demais combinações algoritmo+resampling compiladas (excluindo o campeão), se houver.",
     )
     tier_thresholds: dict[str, float] | None = Field(
-        default=None, description="Limiares de camada A/B/C usados no treino do modelo campeão (ver CLASS_TIER_THRESHOLDS)."
+        default=None, description="Limiares de camada A/B/C usados no treino do modelo campeão."
     )
     class_weight_registry_available: bool = Field(
-        default=False, description="Indica se `model/class_weight_registry.json` está disponível para a futura narrativa via LLM."
+        default=False, description="Indica se `model/class_weight_registry.json` está disponível."
     )
     message: str | None = Field(
         default=None,
-        description="Mensagem informativa quando nenhum modelo compilado for encontrado (ex.: orientação para rodar scripts/compile_models.py).",
+        description="Mensagem informativa quando nenhum modelo compilado for encontrado.",
     )
