@@ -1,22 +1,8 @@
-"""Services (camada de negócio) dos endpoints de inspeção de medidor (Task 006, §3/§4).
+"""Services de inspeção de medidor (Task 007 — inferência real).
 
-Esta task cobre APENAS contratos Pydantic + endpoints HTTP + compilação de
-modelo (ver docs/task006_proximos_passos.md) — a inferência real (carregar o
-`.pkl` compilado, pré-processar via `preprocessing_pipeline.pkl`, decodificar
-via `target_encoder.pkl` e compor `resultado_detalhado` usando
-`class_weight_registry.json`) é explicitamente **fora do escopo** (§4) e fica
-para uma task futura de "services".
-
-Os três services de análise abaixo (`analisar_laudo_completo`,
-`analisar_laudo_sintetico`, `analisar_csv_upload`) são, portanto, stubs que
-levantam `NotImplementedError` — o router (`inspecao_router.py`) converte essa
-exceção em `HTTPException(500, ...)`, documentando o comportamento no
-`description` de cada endpoint (ver §3 do plano).
-
-`obter_info_modelos` é a EXCEÇÃO: como ela só lê metadados já persistidos em
-`model/compiled/*.json` (gerados por `scripts/compile_models.py`/
-`classification.model_compilation`), sem qualquer inferência, ela É
-totalmente implementada nesta task.
+Carrega artefatos via ``ModelRuntime`` (startup) e executa o pipeline único
+em ``inference_pipeline.infer_one``. ``GET /inspecao/modelos`` continua sendo
+apenas leitura de metadados JSON (sem inferência).
 """
 from __future__ import annotations
 
@@ -26,39 +12,60 @@ from pathlib import Path
 from machine_learning.classification.model_compilation import CHAMPION_STEM, get_compiled_model_dir
 from machine_learning.data_preparation import DEFAULT_CLASS_WEIGHT_REGISTRY_FILENAME, get_model_dir
 
-from .inspecao_response_model import ModeloInfoAlgoritmoResponse, ModeloInfoResponse
-
-_SERVICE_NOT_IMPLEMENTED_TEMPLATE = (
-    "Service de {contexto} ainda não implementado — ver docs/task006_proximos_passos.md, "
-    "§4 ('Fora do escopo desta task'). Esta task cobre apenas contratos Pydantic, endpoints "
-    "HTTP e compilação de modelo; a inferência real (carregar o .pkl compilado via "
-    "model/compiled/, pré-processar com preprocessing_pipeline.pkl, decodificar com "
-    "target_encoder.pkl e compor 'resultado_detalhado' a partir de class_weight_registry.json) "
-    "fica para a próxima task."
+from .inference_pipeline import InferenceResult, infer_one
+from .inspecao_response_model import (
+    InspecaoLaudoCsvItemResponse,
+    InspecaoLaudoResponse,
+    ModeloInfoAlgoritmoResponse,
+    ModeloInfoResponse,
 )
+from .model_runtime import ModelRuntime, ModelRuntimeError
 
 
-def _not_implemented(contexto: str) -> None:
-    raise NotImplementedError(_SERVICE_NOT_IMPLEMENTED_TEMPLATE.format(contexto=contexto))
+def _require_runtime(runtime: ModelRuntime | None) -> ModelRuntime:
+    if runtime is None:
+        raise ModelRuntimeError(
+            "Runtime de inferência indisponível: artefatos não carregados no startup. "
+            "Rode 'python scripts/compile_models.py' e reinicie a API."
+        )
+    return runtime
 
 
-def analisar_laudo_completo(laudo: object) -> object:
-    """TODO(task de services): implementar a inferência real a partir de
-    `LaudoCompletoRequest` — ver docs/task006_proximos_passos.md, §4."""
-    _not_implemented("análise de laudo completo (POST /inspecao/laudo_completo)")
+def _to_response(result: InferenceResult) -> InspecaoLaudoResponse:
+    return InspecaoLaudoResponse(
+        numero_laudo=result.numero_laudo,
+        classe_prevista=result.classe_prevista,
+        camada=result.camada,
+        resultado=result.resultado,
+        resultado_detalhado=result.resultado_detalhado,
+        predict_proba=result.predict_proba or None,
+    )
 
 
-def analisar_laudo_sintetico(laudo: object) -> object:
-    """TODO(task de services): implementar a inferência real a partir de
-    `LaudoSinteticoRequest` — ver docs/task006_proximos_passos.md, §4."""
-    _not_implemented("análise de laudo sintético (POST /inspecao/laudo_sintetico)")
+def analisar_laudo_completo(laudo: object, runtime: ModelRuntime | None) -> InspecaoLaudoResponse:
+    return _to_response(infer_one(laudo, _require_runtime(runtime)))
 
 
-def analisar_csv_upload(laudos: list[object]) -> list[object]:
-    """TODO(task de services): implementar a inferência em lote a partir das
-    linhas do CSV já validadas (`LaudoCompletoRequest.model_validate` por
-    linha) — ver docs/task006_proximos_passos.md, §4."""
-    _not_implemented("análise em lote via upload CSV (POST /inspecao/csv)")
+def analisar_laudo_sintetico(laudo: object, runtime: ModelRuntime | None) -> InspecaoLaudoResponse:
+    return _to_response(infer_one(laudo, _require_runtime(runtime)))
+
+
+def analisar_csv_upload(
+    laudos: list[object],
+    runtime: ModelRuntime | None,
+) -> list[InspecaoLaudoCsvItemResponse]:
+    resolved = _require_runtime(runtime)
+    items: list[InspecaoLaudoCsvItemResponse] = []
+    for line_number, laudo in enumerate(laudos, start=1):
+        result = infer_one(laudo, resolved)
+        base = _to_response(result)
+        items.append(
+            InspecaoLaudoCsvItemResponse(
+                **base.model_dump(),
+                numero_linha=line_number,
+            )
+        )
+    return items
 
 
 def _read_json(path: Path) -> dict[str, object] | None:
@@ -83,23 +90,12 @@ def _metadata_to_response(metadata: dict[str, object]) -> ModeloInfoAlgoritmoRes
 
 
 def obter_info_modelos(output_dir: str | Path | None = None) -> ModeloInfoResponse:
-    """Lê os metadados dos modelos compilados em `model/compiled/` (ver
-    `classification.model_compilation`), sem carregar nenhum `.pkl` nem
-    executar qualquer inferência — apenas leitura de arquivos `.json` já
-    persistidos em disco por `scripts/compile_models.py`.
-
-    Retorna uma resposta "vazia" (com `message` explicativo) em vez de
-    lançar erro quando a compilação ainda não foi executada — a ausência de
-    modelo compilado não é uma falha da API, é um estado válido (ainda) do
-    ciclo de vida do projeto.
-    """
+    """Lê metadados em ``model/compiled/*.json`` sem carregar `.pkl` nem inferir."""
     compiled_dir = get_compiled_model_dir(output_dir)
     champion_metadata = _read_json(compiled_dir / f"{CHAMPION_STEM}.json")
 
     other_metadata_paths = sorted(
-        path
-        for path in compiled_dir.glob("*.json")
-        if path.stem != CHAMPION_STEM
+        path for path in compiled_dir.glob("*.json") if path.stem != CHAMPION_STEM
     )
     compiled_variants = []
     for path in other_metadata_paths:

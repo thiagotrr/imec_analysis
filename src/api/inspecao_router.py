@@ -1,22 +1,14 @@
-"""Endpoints de Inspeção de Medidor de Consumo (Task 006, §3).
+"""Endpoints de Inspeção de Medidor de Consumo (Task 006/007).
 
-Cobre apenas a camada HTTP: validação de payload via os contratos Pydantic
-de `inspecao_request_model.py` (automática pelo FastAPI) e chamada a um
-service placeholder (`inspecao_services.py`) que levanta `NotImplementedError`
-— convertido aqui em `HTTPException(500, ...)`, documentado no `description`
-de cada endpoint. Nenhuma lógica de inferência real é implementada (ver
-docs/task006_proximos_passos.md, §4 "Fora do escopo desta task").
-
-A única exceção é `GET /inspecao/modelos`, que é totalmente funcional: apenas
-lê metadados já persistidos em `model/compiled/*.json` (ver
-`inspecao_services.obter_info_modelos`), sem inferência.
+Camada HTTP: validação Pydantic + chamada aos services de inferência.
+Erros de runtime/inferência (`ModelRuntimeError`) → HTTP 500.
 """
 from __future__ import annotations
 
 import csv
 import io
 
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, Request, UploadFile
 from pydantic import ValidationError
 
 from log import get_log
@@ -24,6 +16,7 @@ from log import get_log
 from . import inspecao_services as services
 from .inspecao_request_model import LaudoCompletoRequest, LaudoSinteticoRequest, validate_laudo_completo_row
 from .inspecao_response_model import InspecaoLaudoCsvItemResponse, InspecaoLaudoResponse, ModeloInfoResponse
+from .model_runtime import ModelRuntimeError
 
 log = get_log()
 
@@ -34,16 +27,20 @@ router = APIRouter()
 _RESPONSE_422_MODEL_INVALID = {
     "description": "Payload inválido: um ou mais campos não correspondem ao contrato esperado (tipo, obrigatoriedade ou campo desconhecido).",
 }
-_RESPONSE_500_SERVICE_NOT_IMPLEMENTED = {
+_RESPONSE_500_INFERENCE = {
     "description": (
-        "Service de inferência ainda não implementado nesta task — ver "
-        "docs/task006_proximos_passos.md, §4 ('Fora do escopo desta task')."
+        "Falha de inferência: artefatos ausentes/não carregados no startup, "
+        "erro ao pré-processar ou ao executar o modelo campeão."
     ),
 }
 
 
-def _service_not_implemented_to_http(exc: NotImplementedError, endpoint: str) -> HTTPException:
-    log.exception("Service de %s ainda não implementado", endpoint)
+def _runtime_from_request(request: Request):
+    return getattr(request.app.state, "runtime", None)
+
+
+def _inference_error_to_http(exc: ModelRuntimeError, endpoint: str) -> HTTPException:
+    log.exception("Falha de inferência em %s", endpoint)
     return HTTPException(status_code=500, detail=str(exc))
 
 
@@ -53,25 +50,19 @@ def _service_not_implemented_to_http(exc: NotImplementedError, endpoint: str) ->
     summary="Analisa um laudo completo (todas as colunas do dataset)",
     description=(
         "Recebe TODAS as colunas do laudo de aferição (mesmo layout de "
-        "`resultado_laudo_afericao.xlsx`, exceto o target `CODRSTAFER`) e retornaria a "
-        "classificação do medidor. Uso: consumidor que já possui o laudo completo e não "
-        "quer se preocupar em saber quais colunas o modelo de fato usa (ver "
-        "docs/task006_proximos_passos.md, §2.1). "
-        "\n\n**TODO**: a inferência real (carregar `model/compiled/champion.pkl`, "
-        "pré-processar via `preprocessing_pipeline.pkl` e decodificar via `target_encoder.pkl`) "
-        "ainda não está implementada — ver §4 do plano. Esta chamada validará o payload "
-        "(422 em caso de schema inválido) e retornará 500 (service não implementado) em caso "
-        "de payload válido."
+        "`resultado_laudo_afericao.xlsx`, exceto o target `CODRSTAFER`), filtra as "
+        "features retidas, executa `preprocessing_pipeline` + `champion` e retorna "
+        "classe prevista, camada (A–D), `predict_proba` e narrativa template."
     ),
     response_model=InspecaoLaudoResponse,
-    responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_SERVICE_NOT_IMPLEMENTED},
+    responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
 )
-def analisar_laudo_completo(laudo: LaudoCompletoRequest) -> InspecaoLaudoResponse:
+def analisar_laudo_completo(laudo: LaudoCompletoRequest, request: Request) -> InspecaoLaudoResponse:
     log.info("Recebida solicitação de análise de laudo completo (NUMLAUDO=%s)", getattr(laudo, "NUMLAUDO", None))
     try:
-        return services.analisar_laudo_completo(laudo)
-    except NotImplementedError as exc:
-        raise _service_not_implemented_to_http(exc, "análise de laudo completo") from exc
+        return services.analisar_laudo_completo(laudo, _runtime_from_request(request))
+    except ModelRuntimeError as exc:
+        raise _inference_error_to_http(exc, "análise de laudo completo") from exc
 
 
 @router.post(
@@ -80,21 +71,18 @@ def analisar_laudo_completo(laudo: LaudoCompletoRequest) -> InspecaoLaudoRespons
     summary="Analisa um laudo sintético (somente as features usadas pelo modelo)",
     description=(
         "Recebe apenas as features retidas pelo último treino definitivo "
-        "(`retained_feature_columns` em `model/preparation_metadata.json` — contrato "
-        "fixo `LaudoSinteticoRequest`). Uso: integração magra com o mínimo necessário "
-        "para o `preprocessing_pipeline.pkl` ser executável. "
-        "\n\n**TODO**: mesma ressalva do endpoint `/inspecao/laudo_completo` — inferência "
-        "real fora do escopo desta task (ver §4 do plano)."
+        "(`retained_feature_columns` — contrato `LaudoSinteticoRequest`) e executa "
+        "a mesma inferência do endpoint de laudo completo."
     ),
     response_model=InspecaoLaudoResponse,
-    responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_SERVICE_NOT_IMPLEMENTED},
+    responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
 )
-def analisar_laudo_sintetico(laudo: LaudoSinteticoRequest) -> InspecaoLaudoResponse:
+def analisar_laudo_sintetico(laudo: LaudoSinteticoRequest, request: Request) -> InspecaoLaudoResponse:
     log.info("Recebida solicitação de análise de laudo sintético (NUMLAUDO=%s)", getattr(laudo, "NUMLAUDO", None))
     try:
-        return services.analisar_laudo_sintetico(laudo)
-    except NotImplementedError as exc:
-        raise _service_not_implemented_to_http(exc, "análise de laudo sintético") from exc
+        return services.analisar_laudo_sintetico(laudo, _runtime_from_request(request))
+    except ModelRuntimeError as exc:
+        raise _inference_error_to_http(exc, "análise de laudo sintético") from exc
 
 
 @router.post(
@@ -102,19 +90,15 @@ def analisar_laudo_sintetico(laudo: LaudoSinteticoRequest) -> InspecaoLaudoRespo
     tags=[TAG],
     summary="Analisa em lote um CSV com um ou mais laudos. Encoding UTF-8.",
     description=(
-        "Recebe um arquivo CSV (multipart/form-data) no mesmo layout de "
-        "`resultado_laudo_afericao.xlsx` (mesmas colunas do contrato `LaudoCompletoRequest`, "
-        "uma ou mais linhas). Cada linha é validada individualmente reaproveitando o schema "
-        "de `LaudoCompletoRequest` (ver docs/task006_proximos_passos.md, §2.3); se qualquer "
-        "linha for inválida, a resposta é 422 com o detalhamento por linha/coluna, sem "
-        "processar nenhuma linha do lote. "
-        "\n\n**TODO**: mesma ressalva dos demais endpoints de análise — inferência real fora "
-        "do escopo desta task (ver §4 do plano)."
+        "Recebe um arquivo CSV (multipart/form-data) no layout de "
+        "`LaudoCompletoRequest`. Cada linha é validada individualmente; se qualquer "
+        "linha for inválida, a resposta é 422 sem processar o lote. Caso contrário, "
+        "executa inferência por linha e devolve `numero_linha` em cada item."
     ),
     response_model=list[InspecaoLaudoCsvItemResponse],
-    responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_SERVICE_NOT_IMPLEMENTED},
+    responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
 )
-async def analisar_csv_upload(arquivo: UploadFile) -> list[InspecaoLaudoCsvItemResponse]:
+async def analisar_csv_upload(arquivo: UploadFile, request: Request) -> list[InspecaoLaudoCsvItemResponse]:
     raw_bytes = await arquivo.read()
     try:
         text = raw_bytes.decode("utf-8-sig")
@@ -142,9 +126,9 @@ async def analisar_csv_upload(arquivo: UploadFile) -> list[InspecaoLaudoCsvItemR
 
     log.info("Recebida solicitação de análise em lote via CSV (%d linha(s))", len(validated_laudos))
     try:
-        return services.analisar_csv_upload(validated_laudos)
-    except NotImplementedError as exc:
-        raise _service_not_implemented_to_http(exc, "análise em lote via upload CSV") from exc
+        return services.analisar_csv_upload(validated_laudos, _runtime_from_request(request))
+    except ModelRuntimeError as exc:
+        raise _inference_error_to_http(exc, "análise em lote via upload CSV") from exc
 
 
 @router.get(
@@ -153,13 +137,8 @@ async def analisar_csv_upload(arquivo: UploadFile) -> list[InspecaoLaudoCsvItemR
     summary="Lista metadados do(s) modelo(s) compilado(s) disponíveis",
     description=(
         "Retorna os metadados do modelo campeão e das demais combinações algoritmo+resampling "
-        "compiladas em `model/compiled/` (ver `scripts/compile_models.py`): algoritmo, "
-        "resampling, métricas de validação, colunas de entrada esperadas e classes suportadas. "
-        "Útil para consumidores validarem compatibilidade antes de chamar os demais endpoints. "
-        "Diferente dos demais endpoints desta tag, este É totalmente funcional (apenas leitura "
-        "de metadados já persistidos em disco — nenhuma inferência é executada). Se nenhum "
-        "modelo tiver sido compilado ainda, retorna 200 com `champion=null` e uma mensagem "
-        "explicativa (não é tratado como erro)."
+        "compiladas em `model/compiled/`. Se nenhum modelo tiver sido compilado ainda, retorna "
+        "200 com `champion=null` e uma mensagem explicativa (não é tratado como erro)."
     ),
     response_model=ModeloInfoResponse,
     responses={500: {"description": "Falha inesperada ao ler os metadados em model/compiled/."}},

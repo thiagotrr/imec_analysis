@@ -18,7 +18,7 @@
 | `preparation_metadata.json` | `model/preparation_metadata.json` | Colunas de entrada esperadas, colunas descartadas, tipos, etc. |
 | `MANUALLY_REMOVED_FEATURES` | `src/machine_learning/feature_engineering.py` | Lista de colunas descartadas manualmente (usada no contrato §2.2) |
 | Modelos treinados (CatBoost/XGBoost) | resultado de `run_classification_workflow` | Hoje não são persistidos em `.pkl` — é o item 1 desta task |
-| `src/api/main.py`, `request_model.py`, `response_model.py` | `src/api/` | Esqueleto FastAPI existente com 1 endpoint de exemplo (`/analise_inspecao`) — será estendido |
+| `src/api/main.py`, `inspecao_router.py`, contratos Pydantic | `src/api/` | App FastAPI com endpoints `/inspecao/*` (tag "Inspeção de Medidor de Consumo") |
 
 ---
 
