@@ -1,7 +1,7 @@
 """Gera o cache de especificação de campos + JSON Schemas dos contratos de laudo.
 
 NOTA (revisão Task 006): os contratos da API em
-`src/api/inspecao_request_model.py` são agora classes Pydantic **FIXAS**
+`src/api/models/inspecao_request.py` são agora classes Pydantic **FIXAS**
 (não reconstruídas em runtime). Este script permanece apenas como utilitário
 offline para inspecionar/atualizar artefatos em `model/schemas/` quando o
 dataset de origem mudar — a API NÃO depende mais desse cache.
@@ -27,7 +27,7 @@ SRC_DIR = ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from api.inspecao_request_model import InspecaoMedidorBase  # noqa: E402
+from api.models.inspecao_request import InspecaoMedidorBase  # noqa: E402
 from api.schema_generation import (  # noqa: E402
     build_example_row,
     build_field_specs,

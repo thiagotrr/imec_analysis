@@ -1,7 +1,7 @@
 """Utilitário offline de inferência de FieldSpec a partir de um DataFrame.
 
 Os contratos de produção (`LaudoCompletoRequest` / `LaudoSinteticoRequest` em
-`inspecao_request_model.py`) são classes Pydantic **FIXAS**. Este módulo
+`api.models.inspecao_request`) são classes Pydantic **FIXAS**. Este módulo
 permanece para:
 
 1. Testes unitários de inferência de tipo/nulidade (dataset sintético).

@@ -22,6 +22,7 @@ class InspecaoLaudoResponse(BaseModel):
                     "Probabilidade da classe prevista (predict_proba): 0.9123."
                 ),
                 "predict_proba": {"10": 0.9123, "1": 0.0412, "165": 0.0101},
+                "revisao_llm": None,
             }
         }
     )
@@ -63,6 +64,15 @@ class InspecaoLaudoResponse(BaseModel):
         description=(
             "Distribuição de probabilidades por rótulo original de `CODRSTAFER` "
             "(saída de `champion.predict_proba`), quando o modelo expõe essa API."
+        ),
+    )
+    revisao_llm: str | None = Field(
+        default=None,
+        description=(
+            "Revisão em linguagem natural gerada por LLM (pós-processamento opcional). "
+            "Não altera `classe_prevista`, `camada` nem `predict_proba`. "
+            "Null quando o gate omite a chamada (ex.: camada A por default), "
+            "quando LLM está desabilitado/sem chave, no CSV em lote, ou em falha fail-soft."
         ),
     )
 

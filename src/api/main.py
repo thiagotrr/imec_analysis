@@ -10,13 +10,20 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from .inspecao_router import router as inspecao_router
-from .model_runtime import ModelRuntimeError, load_model_runtime
+from llm.reviewer import build_default_reviewer
 from log import get_log
 
+from .model_runtime import ModelRuntimeError, load_model_runtime
+from .routers.inspecao import router as inspecao_router
+from .services.inspecao import load_llm_dependencies
+
 log = get_log()
+
+# Carrega `.env` na raiz do repositório (OPENAI_API_KEY / GEMINI_API_KEY / LLM_*).
+load_dotenv()
 
 
 @asynccontextmanager
@@ -32,6 +39,20 @@ async def lifespan(app: FastAPI):
     except ModelRuntimeError as exc:
         app.state.runtime = None
         log.error("Runtime de inferência indisponível no startup: %s", exc)
+
+    llm_deps = load_llm_dependencies()
+    app.state.llm_settings = llm_deps["llm_settings"]
+    app.state.glossary = llm_deps["glossary"]
+    app.state.class_metrics_lookup = llm_deps["class_metrics_lookup"]
+    app.state.llm_reviewer = build_default_reviewer(app.state.llm_settings)
+    log.info(
+        "LLM pós-processamento: enabled=%s provider=%s configured=%s glossary_status=%s",
+        app.state.llm_settings.enabled,
+        app.state.llm_settings.provider,
+        app.state.llm_settings.is_configured(),
+        getattr(app.state.glossary, "status", "unknown"),
+    )
+
     try:
         yield
     except Exception:
@@ -39,6 +60,7 @@ async def lifespan(app: FastAPI):
         raise
     finally:
         app.state.runtime = None
+        app.state.llm_reviewer = None
         log.info("Encerrando API IMeC Analysis")
 
 

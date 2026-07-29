@@ -1,4 +1,4 @@
-"""Testes unitários da camada de services / narrativa / runtime (Task 007)."""
+"""Testes unitários da camada de services / analysis / runtime (Task 007/008)."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,10 +7,11 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from api.inspecao_request_model import LaudoSinteticoRequest
-from api.inspecao_services import analisar_laudo_sintetico, analisar_csv_upload
+from api.models.inspecao_request import LaudoSinteticoRequest
 from api.model_runtime import ClassTierInfo, ModelRuntime, ModelRuntimeError, load_model_runtime
-from api.narrative import compose_resultado, compose_resultado_detalhado
+from api.services.inspecao import analisar_csv_upload, analisar_laudo_sintetico
+from llm.analysis import compose_resultado, compose_resultado_detalhado
+from llm.config import LlmSettings
 
 
 def test_compose_resultado_codigo_mais_camada() -> None:
@@ -63,10 +64,15 @@ class _FakeChampion:
         return np.tile(np.array([[0.8, 0.2]]), (n, 1))
 
 
-def _fake_runtime(*, predicted_index: int = 0, include_class: bool = True) -> ModelRuntime:
+def _fake_runtime(
+    *,
+    predicted_index: int = 0,
+    include_class: bool = True,
+    tier: str = "A",
+) -> ModelRuntime:
     lookup = {}
     if include_class:
-        lookup["10"] = ClassTierInfo(classe="10", tier="A", weight=0.15, count=100, percentage=40.0)
+        lookup["10"] = ClassTierInfo(classe="10", tier=tier, weight=0.15, count=100, percentage=40.0)
         lookup["1"] = ClassTierInfo(classe="1", tier="A", weight=0.2, count=80, percentage=30.0)
     return ModelRuntime(
         champion=_FakeChampion(predicted_index),
@@ -82,7 +88,11 @@ def _fake_runtime(*, predicted_index: int = 0, include_class: bool = True) -> Mo
 
 def test_analisar_laudo_sintetico_com_runtime_fake() -> None:
     laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
-    response = analisar_laudo_sintetico(laudo, _fake_runtime(predicted_index=0))
+    response = analisar_laudo_sintetico(
+        laudo,
+        _fake_runtime(predicted_index=0),
+        llm_settings=LlmSettings(enabled=False),
+    )
 
     assert response.classe_prevista == "10"
     assert response.camada == "A"
@@ -91,11 +101,16 @@ def test_analisar_laudo_sintetico_com_runtime_fake() -> None:
     assert response.predict_proba["10"] == pytest.approx(0.8)
     assert "0.150000" in response.resultado_detalhado
     assert "0.8000" in response.resultado_detalhado
+    assert response.revisao_llm is None
 
 
 def test_analisar_laudo_sintetico_classe_fora_do_registry_revisao_manual() -> None:
     laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
-    response = analisar_laudo_sintetico(laudo, _fake_runtime(predicted_index=0, include_class=False))
+    response = analisar_laudo_sintetico(
+        laudo,
+        _fake_runtime(predicted_index=0, include_class=False),
+        llm_settings=LlmSettings(enabled=False),
+    )
 
     assert response.classe_prevista == "10"
     assert response.camada == "D"
@@ -119,6 +134,7 @@ def test_analisar_csv_upload_numera_linhas() -> None:
     items = analisar_csv_upload([laudo, laudo], _fake_runtime())
     assert [item.numero_linha for item in items] == [1, 2]
     assert all(item.classe_prevista == "10" for item in items)
+    assert all(item.revisao_llm is None for item in items)
 
 
 def test_load_model_runtime_real_artifacts() -> None:

@@ -19,7 +19,7 @@ from machine_learning.data_preparation import (
     get_model_dir,
 )
 
-from .inspecao_request_model import RETAINED_FEATURE_COLUMNS
+from .models.inspecao_request import RETAINED_FEATURE_COLUMNS
 
 
 class ModelRuntimeError(RuntimeError):

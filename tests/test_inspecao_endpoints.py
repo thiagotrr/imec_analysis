@@ -9,10 +9,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
-from api.inspecao_request_model import LaudoCompletoRequest, LaudoSinteticoRequest
-from api.inspecao_response_model import ModeloInfoResponse
-from api.inspecao_services import obter_info_modelos
+from api.models.inspecao_request import LaudoCompletoRequest, LaudoSinteticoRequest
+from api.models.inspecao_response import ModeloInfoResponse
 from api.model_runtime import ModelRuntimeError
+from api.services.inspecao import obter_info_modelos
 
 TAG = "Inspeção de Medidor de Consumo"
 
@@ -37,6 +37,7 @@ def _assert_successful_inspecao_payload(payload: dict[str, object]) -> None:
     assert isinstance(payload.get("resultado"), str) and payload["resultado"]
     assert isinstance(payload.get("resultado_detalhado"), str) and payload["resultado_detalhado"]
     assert "predict_proba" in payload
+    assert "revisao_llm" in payload
     if payload["camada"] == "D":
         assert payload["resultado"] == "Revisão manual"
     else:

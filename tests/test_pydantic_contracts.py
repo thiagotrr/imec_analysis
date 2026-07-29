@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from api.inspecao_request_model import (
+from api.models.inspecao_request import (
     RETAINED_FEATURE_COLUMNS,
     InspecaoMedidorBase,
     LaudoCompletoRequest,

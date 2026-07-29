@@ -32,7 +32,7 @@ def compose_resultado_detalhado(
     probabilidade: float | None,
     discard_tier_label: str = "D",
 ) -> str:
-    """Narrativa template citando camada/peso (e score quando disponível)."""
+    """Texto template citando camada/peso (e score quando disponível)."""
     if camada == discard_tier_label:
         parts = [
             f"Classe prevista {classe_prevista} está fora do escopo do registry "

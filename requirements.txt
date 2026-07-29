@@ -4,6 +4,12 @@ fastapi==0.115.0
 uvicorn==0.30.6
 python-multipart==0.0.12
 httpx==0.28.1
+python-dotenv==1.1.1
+
+# LLM (Task 008 — LangChain)
+langchain-core==1.5.2
+langchain-openai==1.4.1
+langchain-google-genai==4.3.2
 
 # Dados / ML
 pandas==2.3.3
