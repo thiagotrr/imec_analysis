@@ -1,0 +1,94 @@
+{
+  "version": "0.1.0",
+  "target_column": "CODRSTAFER",
+  "status": "scaffold",
+  "description": "Arcabouço do glossário operacional das classes retidas de CODRSTAFER. Preencher label/description com significados de negócio aprovados pela área (aprovado, reprovado, tipo de irregularidade etc.). Enquanto status=scaffold, o LLM deve tratar significados como pendentes e não inventar definições.",
+  "classes": {
+    "1": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "A",
+      "notes": "Classe majoritária — preencher significado operacional."
+    },
+    "10": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "A",
+      "notes": "Classe majoritária — preencher significado operacional."
+    },
+    "165": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "B"
+    },
+    "106": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "B"
+    },
+    "111": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "B"
+    },
+    "121": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "B"
+    },
+    "104": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "B"
+    },
+    "102": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "C"
+    },
+    "109": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "C"
+    },
+    "115": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "C"
+    },
+    "146": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "C"
+    },
+    "145": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "C"
+    },
+    "101": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "C"
+    },
+    "107": {
+      "label": null,
+      "description": null,
+      "status": "pending",
+      "tier": "C"
+    }
+  }
+}

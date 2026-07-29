@@ -1,22 +1,25 @@
-"""Endpoints de Inspeção de Medidor de Consumo (Task 006/007).
+"""Endpoints de Inspeção de Medidor de Consumo (Task 006/007/008).
 
 Camada HTTP: validação Pydantic + chamada aos services de inferência.
 Erros de runtime/inferência (`ModelRuntimeError`) → HTTP 500.
+
+Query ``revisao_llm`` (opcional) força/desliga a revisão LLM nos endpoints
+unitários. CSV em lote nunca chama LLM.
 """
 from __future__ import annotations
 
 import csv
 import io
 
-from fastapi import APIRouter, HTTPException, Request, UploadFile
+from fastapi import APIRouter, HTTPException, Query, Request, UploadFile
 from pydantic import ValidationError
 
 from log import get_log
 
-from . import inspecao_services as services
-from .inspecao_request_model import LaudoCompletoRequest, LaudoSinteticoRequest, validate_laudo_completo_row
-from .inspecao_response_model import InspecaoLaudoCsvItemResponse, InspecaoLaudoResponse, ModeloInfoResponse
-from .model_runtime import ModelRuntimeError
+from api.services import inspecao as services
+from api.models.inspecao_request import LaudoCompletoRequest, LaudoSinteticoRequest, validate_laudo_completo_row
+from api.models.inspecao_response import InspecaoLaudoCsvItemResponse, InspecaoLaudoResponse, ModeloInfoResponse
+from api.model_runtime import ModelRuntimeError
 
 log = get_log()
 
@@ -34,9 +37,30 @@ _RESPONSE_500_INFERENCE = {
     ),
 }
 
+_REVISAO_LLM_QUERY = Query(
+    default=None,
+    description=(
+        "Controla a revisão LLM pós-inferência. "
+        "`true` força a chamada (mesmo em camada A); "
+        "`false` desliga; "
+        "omitido aplica o gate padrão (não chama para camada A / classes majoritárias)."
+    ),
+)
+
 
 def _runtime_from_request(request: Request):
     return getattr(request.app.state, "runtime", None)
+
+
+def _llm_kwargs_from_request(request: Request, revisao_llm: bool | None) -> dict:
+    state = request.app.state
+    return {
+        "revisao_llm": revisao_llm,
+        "llm_reviewer": getattr(state, "llm_reviewer", None),
+        "llm_settings": getattr(state, "llm_settings", None),
+        "glossary": getattr(state, "glossary", None),
+        "class_metrics_lookup": getattr(state, "class_metrics_lookup", None),
+    }
 
 
 def _inference_error_to_http(exc: ModelRuntimeError, endpoint: str) -> HTTPException:
@@ -52,15 +76,24 @@ def _inference_error_to_http(exc: ModelRuntimeError, endpoint: str) -> HTTPExcep
         "Recebe TODAS as colunas do laudo de aferição (mesmo layout de "
         "`resultado_laudo_afericao.xlsx`, exceto o target `CODRSTAFER`), filtra as "
         "features retidas, executa `preprocessing_pipeline` + `champion` e retorna "
-        "classe prevista, camada (A–D), `predict_proba` e narrativa template."
+        "classe prevista, camada (A–D), `predict_proba`, texto template e, quando o "
+        "gate LLM permitir, `revisao_llm`."
     ),
     response_model=InspecaoLaudoResponse,
     responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
 )
-def analisar_laudo_completo(laudo: LaudoCompletoRequest, request: Request) -> InspecaoLaudoResponse:
+def analisar_laudo_completo(
+    laudo: LaudoCompletoRequest,
+    request: Request,
+    revisao_llm: bool | None = _REVISAO_LLM_QUERY,
+) -> InspecaoLaudoResponse:
     log.info("Recebida solicitação de análise de laudo completo (NUMLAUDO=%s)", getattr(laudo, "NUMLAUDO", None))
     try:
-        return services.analisar_laudo_completo(laudo, _runtime_from_request(request))
+        return services.analisar_laudo_completo(
+            laudo,
+            _runtime_from_request(request),
+            **_llm_kwargs_from_request(request, revisao_llm),
+        )
     except ModelRuntimeError as exc:
         raise _inference_error_to_http(exc, "análise de laudo completo") from exc
 
@@ -72,15 +105,23 @@ def analisar_laudo_completo(laudo: LaudoCompletoRequest, request: Request) -> In
     description=(
         "Recebe apenas as features retidas pelo último treino definitivo "
         "(`retained_feature_columns` — contrato `LaudoSinteticoRequest`) e executa "
-        "a mesma inferência do endpoint de laudo completo."
+        "a mesma inferência do endpoint de laudo completo, com revisão LLM opcional."
     ),
     response_model=InspecaoLaudoResponse,
     responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
 )
-def analisar_laudo_sintetico(laudo: LaudoSinteticoRequest, request: Request) -> InspecaoLaudoResponse:
+def analisar_laudo_sintetico(
+    laudo: LaudoSinteticoRequest,
+    request: Request,
+    revisao_llm: bool | None = _REVISAO_LLM_QUERY,
+) -> InspecaoLaudoResponse:
     log.info("Recebida solicitação de análise de laudo sintético (NUMLAUDO=%s)", getattr(laudo, "NUMLAUDO", None))
     try:
-        return services.analisar_laudo_sintetico(laudo, _runtime_from_request(request))
+        return services.analisar_laudo_sintetico(
+            laudo,
+            _runtime_from_request(request),
+            **_llm_kwargs_from_request(request, revisao_llm),
+        )
     except ModelRuntimeError as exc:
         raise _inference_error_to_http(exc, "análise de laudo sintético") from exc
 
@@ -93,7 +134,8 @@ def analisar_laudo_sintetico(laudo: LaudoSinteticoRequest, request: Request) -> 
         "Recebe um arquivo CSV (multipart/form-data) no layout de "
         "`LaudoCompletoRequest`. Cada linha é validada individualmente; se qualquer "
         "linha for inválida, a resposta é 422 sem processar o lote. Caso contrário, "
-        "executa inferência por linha e devolve `numero_linha` em cada item."
+        "executa inferência por linha e devolve `numero_linha` em cada item. "
+        "Não dispara revisão LLM (custo/latência); use os endpoints unitários."
     ),
     response_model=list[InspecaoLaudoCsvItemResponse],
     responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},

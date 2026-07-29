@@ -1,8 +1,11 @@
-"""Pipeline compartilhado de inferência (Task 007).
+"""Pipeline compartilhado de inferência (Task 007/008).
 
 Fluxo único para laudo completo, sintético e cada linha de CSV:
 payload → DataFrame (features retidas) → preprocessing → predict[/proba]
-→ decode → lookup de camada → composição da resposta.
+→ decode → lookup de camada → composição da resposta (template).
+
+A revisão LLM (Task 008) é opcional e ocorre fora deste módulo, nos services
+de laudo unitário — nunca no CSV em lote.
 """
 from __future__ import annotations
 
@@ -12,9 +15,10 @@ from typing import Any, Mapping
 import numpy as np
 import pandas as pd
 
-from .inspecao_request_model import RETAINED_FEATURE_COLUMNS
-from .model_runtime import ClassTierInfo, ModelRuntime, ModelRuntimeError
-from .narrative import compose_resultado, compose_resultado_detalhado
+from llm.analysis import compose_resultado, compose_resultado_detalhado
+
+from api.models.inspecao_request import RETAINED_FEATURE_COLUMNS
+from api.model_runtime import ClassTierInfo, ModelRuntime, ModelRuntimeError
 
 
 @dataclass(frozen=True)
@@ -25,6 +29,7 @@ class InferenceResult:
     resultado: str
     resultado_detalhado: str
     predict_proba: dict[str, float]
+    revisao_llm: str | None = None
 
 
 def _payload_to_mapping(payload: Any) -> Mapping[str, Any]:
@@ -106,4 +111,5 @@ def infer_one(payload: Any, runtime: ModelRuntime) -> InferenceResult:
         resultado=resultado,
         resultado_detalhado=resultado_detalhado,
         predict_proba=predict_proba,
+        revisao_llm=None,
     )
