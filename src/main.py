@@ -21,11 +21,13 @@ log = get_log()
 def run_api() -> None:
     log.info("Iniciando API IMeC Analysis", extra={"event": "api_start"})
     try:
+        src_dir = Path(__file__).resolve().parent
         uvicorn.run(
             "api.main:app",
             host="0.0.0.0",
             port=8000,
             reload=True,
+            app_dir=str(src_dir),
         )
     except Exception:
         log.exception("Erro não tratado durante a execução da API", extra={"event": "api_error"})

@@ -51,6 +51,18 @@ python src/main.py --ml
 | `python src/main.py --api` | Idem ao padrão |
 | `python src/main.py --ml` | Roda preparação, exploração gráfica, treino e consolidação de métricas |
 
+Alternativa para iniciar a API via Uvicorn (evita problemas de import em ambientes onde `src` não está no `PYTHONPATH`):
+
+```powershell
+python -m uvicorn --app-dir src api.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Acesso no navegador:
+
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+- OpenAPI JSON: http://localhost:8000/openapi.json
+
 Com `--ml`, o fluxo gera o dashboard HTML em [model/exploration](model/exploration), treina o algoritmo padrão (XGBoost + SMOTE) e persiste o consolidado em [model/classification](model/classification).
 
 Scripts individuais (opcional, fora do entrypoint):
