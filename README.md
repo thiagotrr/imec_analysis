@@ -44,8 +44,8 @@ python src/main.py
 python main.py --api
 python src/main.py --api
 
-# Gera/renova certificado HTTPS local (development)
-python scripts/generate_dev_https_cert.py --force
+# Gera/renova CA local + certificado HTTPS (development)
+python scripts/generate_dev_https_cert.py --force --install-ca
 
 # API FastAPI via HTTPS (porta segura padrão: 8443)
 python main.py --api --https --ssl-certfile certs/server.crt --ssl-keyfile certs/server.key --no-reload
@@ -60,7 +60,8 @@ python src/main.py --ml
 | `python main.py` | Atalho na raiz para iniciar a API (equivalente a `python src/main.py`) |
 | `python src/main.py` | Sobe a API em `http://0.0.0.0:8000` (Swagger: `/docs`) |
 | `python main.py --api --https --ssl-certfile certs/server.crt --ssl-keyfile certs/server.key --no-reload` | Atalho HTTPS na raiz usando os certificados em `certs/` |
-| `python scripts/generate_dev_https_cert.py --force` | Gera/renova certificado autoassinado local em `certs/server.crt` e `certs/server.key` |
+| `python scripts/generate_dev_https_cert.py --force --install-ca` | Gera CA local + certificado RSA-4096 em `certs/` e instala a CA no trust store do Windows |
+| `python scripts/add_dev_https_sans.py 192.168.68.104` | Reemite `server.crt` com IPs/DNS extras, reutilizando a CA local |
 | `python src/main.py --api --https --ssl-certfile certs/server.crt --ssl-keyfile certs/server.key --no-reload` | Sobe a API em `https://0.0.0.0:8443` (ou porta definida em `--port`) |
 | `python src/main.py --api` | Idem ao padrão |
 | `python src/main.py --ml` | Roda preparação, exploração gráfica, treino e consolidação de métricas |
@@ -68,11 +69,23 @@ python src/main.py --ml
 Parâmetros úteis do script de certificado:
 
 - `--output-dir certs`: diretório de saída dos arquivos PEM.
-- `--cert-file server.crt`: nome do arquivo do certificado.
-- `--key-file server.key`: nome do arquivo da chave privada.
-- `--common-name localhost`: CN/SAN DNS principal para uso local.
-- `--days 365`: validade do certificado em dias.
+- `--cert-file server.crt` / `--key-file server.key`: certificado e chave do servidor.
+- `--ca-cert-file ca.crt` / `--ca-key-file ca.key`: autoridade local que assina o servidor.
+- `--common-name localhost`: CN do servidor (SAN inclui também `127.0.0.1` e `::1`).
+- `--days 825` / `--ca-days 3650`: validade do servidor e da CA.
+- `--key-size 4096`: tamanho da chave RSA.
 - `--force`: sobrescreve arquivos existentes (renovação).
+- `--reuse-ca`: regenera só o certificado do servidor, reutilizando a CA.
+- `--install-ca`: instala `certs/ca.crt` no trust store do usuário Windows (Chrome/Edge).
+
+Para incluir IPs/DNS da LAN sem regenerar a CA (clientes que já confiam em `ca.crt` continuam ok):
+
+```powershell
+python scripts/add_dev_https_sans.py 192.168.68.104
+python scripts/add_dev_https_sans.py 192.168.68.104 10.0.0.5 api.local
+```
+
+Sem instalar a CA local, o browser continua exibindo aviso de certificado não confiável — isso é esperado para qualquer HTTPS de desenvolvimento.
 
 Execução HTTPS por diretório (evita erro de caminho):
 
