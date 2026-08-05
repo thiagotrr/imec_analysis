@@ -5,6 +5,7 @@ uvicorn==0.30.6
 python-multipart==0.0.12
 httpx==0.28.1
 python-dotenv==1.1.1
+cryptography==49.0.0
 
 # LLM (Task 008 — LangChain)
 langchain-core==1.5.2

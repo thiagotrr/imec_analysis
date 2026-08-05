@@ -28,22 +28,27 @@ TAG = "Inspeção de Medidor de Consumo"
 router = APIRouter()
 
 _RESPONSE_422_MODEL_INVALID = {
-    "description": "Payload inválido: um ou mais campos não correspondem ao contrato esperado (tipo, obrigatoriedade ou campo desconhecido).",
+    "description": (
+        "Dados enviados inválidos: um ou mais campos estão fora do formato esperado "
+        "(tipo incorreto, campo obrigatório ausente ou campo não reconhecido)."
+    ),
 }
 _RESPONSE_500_INFERENCE = {
     "description": (
-        "Falha de inferência: artefatos ausentes/não carregados no startup, "
-        "erro ao pré-processar ou ao executar o modelo campeão."
+        "Falha ao analisar o laudo: arquivos do modelo ausentes/não carregados na "
+        "inicialização, erro no preparo dos dados ou erro na execução do modelo "
+        "principal (champion)."
     ),
 }
 
 _REVISAO_LLM_QUERY = Query(
     default=None,
     description=(
-        "Controla a revisão LLM pós-inferência. "
-        "`true` força a chamada (mesmo em camada A); "
-        "`false` desliga; "
-        "omitido aplica o gate padrão (não chama para camada A / classes majoritárias)."
+        "Define se a revisão por IA (revisao_llm) será aplicada após a predição. "
+        "`true` força a revisão (inclusive em camada A); "
+        "`false` desliga a revisão; "
+        "se não informar, usa a regra automática (gate padrão), que não revisa camada "
+        "A nem classes mais frequentes."
     ),
 )
 
@@ -73,11 +78,13 @@ def _inference_error_to_http(exc: ModelRuntimeError, endpoint: str) -> HTTPExcep
     tags=[TAG],
     summary="Analisa um laudo completo (todas as colunas do dataset)",
     description=(
-        "Recebe TODAS as colunas do laudo de aferição (mesmo layout de "
-        "`resultado_laudo_afericao.xlsx`, exceto o target `CODRSTAFER`), filtra as "
-        "features retidas, executa `preprocessing_pipeline` + `champion` e retorna "
-        "classe prevista, camada (A–D), `predict_proba`, texto template e, quando o "
-        "gate LLM permitir, `revisao_llm`."
+        "Recebe todas as colunas do laudo (mesmo layout de "
+        "`resultado_laudo_afericao.xlsx`), exceto o campo resultado da aferição "
+        "(`CODRSTAFER`). Em seguida, seleciona os campos usados pelo modelo "
+        "(features retidas), prepara os dados (`preprocessing_pipeline`) e executa o "
+        "modelo principal (`champion`). Retorna o resultado previsto, a camada de "
+        "prioridade (A a D), a probabilidade de acerto (`predict_proba`), o texto "
+        "padrão da análise e, quando permitido, a revisão por IA (`revisao_llm`)."
     ),
     response_model=InspecaoLaudoResponse,
     responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
@@ -103,9 +110,10 @@ def analisar_laudo_completo(
     tags=[TAG],
     summary="Analisa um laudo sintético (somente as features usadas pelo modelo)",
     description=(
-        "Recebe apenas as features retidas pelo último treino definitivo "
-        "(`retained_feature_columns` — contrato `LaudoSinteticoRequest`) e executa "
-        "a mesma inferência do endpoint de laudo completo, com revisão LLM opcional."
+        "Recebe somente os campos que o modelo realmente usa (features retidas "
+        "`retained_feature_columns`, no contrato `LaudoSinteticoRequest`) e executa "
+        "a mesma análise do laudo completo, com revisão por IA (`revisao_llm`) "
+        "opcional."
     ),
     response_model=InspecaoLaudoResponse,
     responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
@@ -131,11 +139,13 @@ def analisar_laudo_sintetico(
     tags=[TAG],
     summary="Analisa em lote um CSV com um ou mais laudos. Encoding UTF-8.",
     description=(
-        "Recebe um arquivo CSV (multipart/form-data) no layout de "
-        "`LaudoCompletoRequest`. Cada linha é validada individualmente; se qualquer "
-        "linha for inválida, a resposta é 422 sem processar o lote. Caso contrário, "
-        "executa inferência por linha e devolve `numero_linha` em cada item. "
-        "Não dispara revisão LLM (custo/latência); use os endpoints unitários."
+        "Recebe um arquivo CSV (multipart/form-data) no formato de "
+        "`LaudoCompletoRequest`. Cada linha é validada separadamente. Se houver "
+        "qualquer linha inválida, o lote é interrompido e a API retorna 422 com o "
+        "detalhe das linhas com erro. Se tudo estiver válido, a análise é feita "
+        "linha a linha e cada item da resposta informa o número da linha "
+        "(`numero_linha`). Para reduzir custo e tempo de resposta, este endpoint não "
+        "executa revisão por IA (LLM)."
     ),
     response_model=list[InspecaoLaudoCsvItemResponse],
     responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
@@ -178,9 +188,11 @@ async def analisar_csv_upload(arquivo: UploadFile, request: Request) -> list[Ins
     tags=[TAG],
     summary="Lista metadados do(s) modelo(s) compilado(s) disponíveis",
     description=(
-        "Retorna os metadados do modelo campeão e das demais combinações algoritmo+resampling "
-        "compiladas em `model/compiled/`. Se nenhum modelo tiver sido compilado ainda, retorna "
-        "200 com `champion=null` e uma mensagem explicativa (não é tratado como erro)."
+        "Retorna os metadados dos modelos já compilados: modelo principal "
+        "(`champion`) e outras combinações de algoritmo com balanceamento "
+        "(`resampling`) salvas em `model/compiled/`. Se ainda não existir modelo "
+        "compilado, retorna 200 com `champion=null` e uma mensagem explicativa "
+        "(não é erro)."
     ),
     response_model=ModeloInfoResponse,
     responses={500: {"description": "Falha inesperada ao ler os metadados em model/compiled/."}},

@@ -35,11 +35,21 @@ Ponto de entrada unificado — execute a partir da raiz do repositório:
 
 ```powershell
 # Ajuda
+python main.py --help
 python src/main.py --help
 
 # API FastAPI (padrão, sem argumentos)
+python main.py
 python src/main.py
+python main.py --api
 python src/main.py --api
+
+# Gera/renova certificado HTTPS local (development)
+python scripts/generate_dev_https_cert.py --force
+
+# API FastAPI via HTTPS (porta segura padrão: 8443)
+python main.py --api --https --ssl-certfile certs/server.crt --ssl-keyfile certs/server.key --no-reload
+python src/main.py --api --https --ssl-certfile certs/server.crt --ssl-keyfile certs/server.key --no-reload
 
 # Pipeline de preparação + exploração + classificação
 python src/main.py --ml
@@ -47,14 +57,37 @@ python src/main.py --ml
 
 | Comando | Efeito |
 |---|---|
+| `python main.py` | Atalho na raiz para iniciar a API (equivalente a `python src/main.py`) |
 | `python src/main.py` | Sobe a API em `http://0.0.0.0:8000` (Swagger: `/docs`) |
+| `python main.py --api --https --ssl-certfile certs/server.crt --ssl-keyfile certs/server.key --no-reload` | Atalho HTTPS na raiz usando os certificados em `certs/` |
+| `python scripts/generate_dev_https_cert.py --force` | Gera/renova certificado autoassinado local em `certs/server.crt` e `certs/server.key` |
+| `python src/main.py --api --https --ssl-certfile certs/server.crt --ssl-keyfile certs/server.key --no-reload` | Sobe a API em `https://0.0.0.0:8443` (ou porta definida em `--port`) |
 | `python src/main.py --api` | Idem ao padrão |
 | `python src/main.py --ml` | Roda preparação, exploração gráfica, treino e consolidação de métricas |
+
+Parâmetros úteis do script de certificado:
+
+- `--output-dir certs`: diretório de saída dos arquivos PEM.
+- `--cert-file server.crt`: nome do arquivo do certificado.
+- `--key-file server.key`: nome do arquivo da chave privada.
+- `--common-name localhost`: CN/SAN DNS principal para uso local.
+- `--days 365`: validade do certificado em dias.
+- `--force`: sobrescreve arquivos existentes (renovação).
+
+Execução HTTPS por diretório (evita erro de caminho):
+
+- Na raiz do repositório: `python src/main.py --api --https --ssl-certfile certs/server.crt --ssl-keyfile certs/server.key --port 8443 --no-reload`
+- Dentro de `src`: `python main.py --api --https --ssl-certfile ../certs/server.crt --ssl-keyfile ../certs/server.key --port 8443 --no-reload`
+
+Observação: se os arquivos estiverem em `certs/`, também funciona informar apenas `server.crt` e `server.key`; a aplicação tenta resolver automaticamente em `./certs`.
 
 Alternativa para iniciar a API via Uvicorn (evita problemas de import em ambientes onde `src` não está no `PYTHONPATH`):
 
 ```powershell
 python -m uvicorn --app-dir src api.main:app --host 0.0.0.0 --port 8000 --reload
+
+# HTTPS
+python -m uvicorn --app-dir src api.main:app --host 0.0.0.0 --port 8443 --reload --ssl-certfile .\certs\server.crt --ssl-keyfile .\certs\server.key
 ```
 
 Acesso no navegador:
@@ -62,6 +95,12 @@ Acesso no navegador:
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
 - OpenAPI JSON: http://localhost:8000/openapi.json
+
+Com HTTPS:
+
+- Swagger UI: https://localhost:8443/docs
+- ReDoc: https://localhost:8443/redoc
+- OpenAPI JSON: https://localhost:8443/openapi.json
 
 Com `--ml`, o fluxo gera o dashboard HTML em [model/exploration](model/exploration), treina o algoritmo padrão (XGBoost + SMOTE) e persiste o consolidado em [model/classification](model/classification).
 
