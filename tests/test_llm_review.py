@@ -104,12 +104,19 @@ def test_prompt_pt_br_prohibits_altering_prediction() -> None:
     assert "Camada de qualificação: A" in user
 
 
-def test_glossary_scaffold_loads_retained_classes() -> None:
+def test_glossary_confirmado_loads_official_classes() -> None:
     glossary = load_codrstafer_glossary()
-    assert glossary.status == "scaffold"
+    assert glossary.status == "confirmado"
     assert "10" in glossary.entries
     assert "1" in glossary.entries
-    assert len(glossary.entries) == 14
+    assert len(glossary.entries) >= 14
+
+    entry_10 = glossary.entries["10"]
+    assert entry_10.status == "confirmado"
+    assert entry_10.situacao_codigo == "R"
+    assert entry_10.situacao_label == "Reprovado"
+    assert entry_10.description
+    assert "Situação: Reprovado" in entry_10.prompt_text()
 
 
 def test_fake_reviewer_does_not_change_prediction_fields() -> None:

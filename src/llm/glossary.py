@@ -17,11 +17,14 @@ class GlossaryEntry:
     label: str | None
     description: str | None
     status: str = "pending"
+    situacao_codigo: str | None = None
+    situacao_label: str | None = None
 
     def prompt_text(self) -> str:
         label = self.label or "(rótulo pendente)"
         description = self.description or "(descrição operacional pendente no glossário)"
-        return f"CODRSTAFER {self.code}: {label} — {description}"
+        situacao = self.situacao_label or "(situação não informada)"
+        return f"CODRSTAFER {self.code}: {label} — {description} (Situação: {situacao})"
 
 
 @dataclass(frozen=True)
@@ -58,6 +61,8 @@ def _parse_entry(code: str, raw: Mapping[str, Any] | None) -> GlossaryEntry:
         label=data.get("label"),
         description=data.get("description"),
         status=str(data.get("status") or "pending"),
+        situacao_codigo=data.get("situacao_codigo"),
+        situacao_label=data.get("situacao_label"),
     )
 
 

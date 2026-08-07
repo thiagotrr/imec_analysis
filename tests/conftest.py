@@ -10,12 +10,23 @@ que o código de produção espera.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
+
+# Testes automatizados NUNCA devem disparar chamadas reais a provedores LLM,
+# mesmo que o ambiente (shell/CI) tenha OPENAI_API_KEY/GEMINI_API_KEY reais
+# configuradas para uso manual da API. Força LLM_ENABLED=false e remove as
+# chaves antes de qualquer import de código de produção — testes que
+# exercitam o fluxo de revisão LLM constroem `LlmSettings(enabled=True, ...)`
+# explicitamente com `FakeLlmReviewer`, então não dependem dessas variáveis.
+os.environ["LLM_ENABLED"] = "false"
+os.environ.pop("OPENAI_API_KEY", None)
+os.environ.pop("GEMINI_API_KEY", None)
 
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_DIR) not in sys.path:

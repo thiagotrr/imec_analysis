@@ -227,6 +227,7 @@ def test_openapi_schema_includes_all_four_endpoints_with_expected_tag(client: Te
 
     inspecao_schema = schema["components"]["schemas"]["InspecaoLaudoResponse"]
     assert "predict_proba" in inspecao_schema["properties"]
+    assert "situacao_afericao" in inspecao_schema["properties"]
 
 
 def test_docs_endpoint_is_served(client: TestClient) -> None:

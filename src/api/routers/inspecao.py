@@ -178,7 +178,11 @@ async def analisar_csv_upload(arquivo: UploadFile, request: Request) -> list[Ins
 
     log.info("Recebida solicitação de análise em lote via CSV (%d linha(s))", len(validated_laudos))
     try:
-        return services.analisar_csv_upload(validated_laudos, _runtime_from_request(request))
+        return services.analisar_csv_upload(
+            validated_laudos,
+            _runtime_from_request(request),
+            glossary=getattr(request.app.state, "glossary", None),
+        )
     except ModelRuntimeError as exc:
         raise _inference_error_to_http(exc, "análise em lote via upload CSV") from exc
 

@@ -14,6 +14,7 @@ class InspecaoLaudoResponse(BaseModel):
                 "numero_laudo": "2025006988",
                 "classe_prevista": "10",
                 "camada": "A",
+                "situacao_afericao": "Reprovado",
                 "resultado": "Classe 10 (camada A)",
                 "resultado_detalhado": (
                     "Classe prevista: 10 (camada A). Camada A: classe dominante no histórico "
@@ -21,7 +22,7 @@ class InspecaoLaudoResponse(BaseModel):
                     "Peso balanceado da classe no treino: 0.153795. "
                     "Probabilidade da classe prevista (predict_proba): 0.9123."
                 ),
-                "predict_proba": {"10": 0.9123, "1": 0.0412, "165": 0.0101},
+                "predict_proba": {"10": 0.9123},
                 "revisao_llm": None,
             }
         }
@@ -45,6 +46,15 @@ class InspecaoLaudoResponse(BaseModel):
             "`model/class_weight_registry.json`."
         ),
     )
+    situacao_afericao: str | None = Field(
+        default=None,
+        description=(
+            "Situação da aferição associada à classe prevista ('Aprovado' ou 'Reprovado'), "
+            "derivada de `SITRSTAFER` no cadastro oficial "
+            "(`model/codrstafer_glossary.json`, campo `situacao_label`). "
+            "Null quando a classe prevista não consta no glossário."
+        ),
+    )
     resultado: str = Field(
         ...,
         description=(
@@ -63,9 +73,13 @@ class InspecaoLaudoResponse(BaseModel):
         default=None,
         description=(
             "Distribuição de probabilidades por rótulo original de `CODRSTAFER` "
-            "(saída de `champion.predict_proba`), quando o modelo expõe essa API."
+            "(saída de `champion.predict_proba`), quando o modelo expõe essa API. "
+            "Ordenado da maior para a menor probabilidade, com a classe prevista sempre em "
+            "primeiro lugar. Quando a probabilidade da classe prevista for ≥ 90%, este campo "
+            "traz apenas essa classe (sem alternativas), para evitar ambiguidade."
         ),
     )
+
     revisao_llm: str | None = Field(
         default=None,
         description=(

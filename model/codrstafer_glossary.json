@@ -1,94 +1,1281 @@
 {
-  "version": "0.1.0",
+  "version": "1.0.0",
   "target_column": "CODRSTAFER",
-  "status": "scaffold",
-  "description": "Arcabouço do glossário operacional das classes retidas de CODRSTAFER. Preencher label/description com significados de negócio aprovados pela área (aprovado, reprovado, tipo de irregularidade etc.). Enquanto status=scaffold, o LLM deve tratar significados como pendentes e não inventar definições.",
+  "status": "confirmado",
+  "description": "Glossário operacional das classes de CODRSTAFER, gerado a partir do cadastro oficial docs/CadastroResultadoDeAfericao.xlsx (colunas CODRSTAFER/DSCRSTAFER/SITRSTAFER). Classes com status='confirmado' têm descrição e situação (Aprovado/Reprovado) homologadas pela área; classes com status='pendente' constam no cadastro mas sem descrição registrada (DSCRSTAFER vazia/placeholder) — o LLM não deve inventar significado.",
+  "source_file": "docs/CadastroResultadoDeAfericao.xlsx",
   "classes": {
     "1": {
+      "label": "O medidor está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão COMPATÍVEIS com sua classe de exatidão.",
+      "description": "O medidor está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão COMPATÍVEIS com sua classe de exatidão.",
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "confirmado",
+      "tier": "A"
+    },
+    "2": {
       "label": null,
       "description": null,
-      "status": "pending",
-      "tier": "A",
-      "notes": "Classe majoritária — preencher significado operacional."
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "pendente",
+      "tier": null
+    },
+    "3": {
+      "label": null,
+      "description": null,
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "pendente",
+      "tier": null
+    },
+    "4": {
+      "label": null,
+      "description": null,
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "pendente",
+      "tier": null
+    },
+    "5": {
+      "label": null,
+      "description": null,
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "pendente",
+      "tier": null
+    },
+    "6": {
+      "label": null,
+      "description": null,
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "pendente",
+      "tier": null
+    },
+    "7": {
+      "label": null,
+      "description": null,
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "pendente",
+      "tier": null
+    },
+    "8": {
+      "label": null,
+      "description": null,
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "pendente",
+      "tier": null
+    },
+    "9": {
+      "label": null,
+      "description": null,
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "pendente",
+      "tier": null
     },
     "10": {
-      "label": null,
-      "description": null,
-      "status": "pending",
-      "tier": "A",
-      "notes": "Classe majoritária — preencher significado operacional."
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": "A"
     },
-    "165": {
-      "label": null,
-      "description": null,
-      "status": "pending",
-      "tier": "B"
+    "11": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O (s) erro (s) percentual (is) do medidor estão INCOMPATÍVEIS com sua classe de exatidão.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O (s) erro (s) percentual (is) do medidor estão INCOMPATÍVEIS com sua classe de exatidão.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
     },
-    "106": {
-      "label": null,
-      "description": null,
-      "status": "pending",
-      "tier": "B"
+    "12": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento inoperante.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento inoperante.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
     },
-    "111": {
-      "label": null,
-      "description": null,
-      "status": "pending",
-      "tier": "B"
+    "13": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
     },
-    "121": {
-      "label": null,
-      "description": null,
-      "status": "pending",
-      "tier": "B"
+    "14": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) preso e engrenagem do registrador trocados.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) preso e engrenagem do registrador trocados.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
     },
-    "104": {
-      "label": null,
-      "description": null,
-      "status": "pending",
-      "tier": "B"
+    "15": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com elemento inoperante e tampa blindada violada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com elemento inoperante e tampa blindada violada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "16": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) parcialmente preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) parcialmente preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "17": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com elemento inoperante e tampa blindada violada, com indícios de violação no bloco e Elemento Móvel (disco girométrico) preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com elemento inoperante e tampa blindada violada, com indícios de violação no bloco e Elemento Móvel (disco girométrico) preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "18": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a tampa frontal quebrada e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a tampa frontal quebrada e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "19": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 1º elemento inoperante.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 1º elemento inoperante.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "20": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 2º elemento inoperante.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 2º elemento inoperante.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "21": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 3º elemento inoperante.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 3º elemento inoperante.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "22": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 1º e 2º elemento inoperante.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 1º e 2º elemento inoperante.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "23": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 1º e 3º elemento inoperante.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 1º e 3º elemento inoperante.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "24": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 2º e 3º elemento inoperante.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 2º e 3º elemento inoperante.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "25": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 1°, 2º e 3º elemento inoperante.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com 1°, 2º e 3º elemento inoperante.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "26": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L1 visivelmente cortado/rompido.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L1 visivelmente cortado/rompido.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "27": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L2 visivelmente cortado/rompido.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L2 visivelmente cortado/rompido.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "28": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L3 visivelmente cortado/rompido.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L3 visivelmente cortado/rompido.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "29": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L1 e L2 visivelmente cortado/rompido.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L1 e L2 visivelmente cortado/rompido.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "30": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L1 e L3 visivelmente cortado/rompido.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L1 e L3 visivelmente cortado/rompido.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "31": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L2 e L3 visivelmente cortado/rompido.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L2 e L3 visivelmente cortado/rompido.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "32": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L1, L2 e L3 visivelmente cortado/rompido.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão INCOMPATÍVEIS com sua classe de exatidão. O medidor encontra-se com fio condutor L1, L2 e L3 visivelmente cortado/rompido.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "33": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com o borne queimado e/ou danificado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com o borne queimado e/ou danificado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "34": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com furo no bloco.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com furo no bloco.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "35": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a base violada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a base violada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "36": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se em curto circuito no borne.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se em curto circuito no borne.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "37": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor encontra-se com a tampa de proteção quebrada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor encontra-se com a tampa de proteção quebrada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "38": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com registrador danificado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com registrador danificado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "39": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com registrador remontado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com registrador remontado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "40": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Engrenagem do Registrador encontra-se desacoplada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Engrenagem do Registrador encontra-se desacoplada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "41": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Engrenagem do Registrador encontra-se deslocada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Engrenagem do Registrador encontra-se deslocada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "42": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a base violada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a base violada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "43": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com furo na base.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com furo na base.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "44": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com furo no bloco.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com furo no bloco.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "45": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a base violada e Elemento inoperante.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a base violada e Elemento inoperante.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "46": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com registrador danificado, placa de identificação e tampa frontal solta.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com registrador danificado, placa de identificação e tampa frontal solta.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "47": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com registrador danificado, placa de identificação e tampa frontal quebrada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com registrador danificado, placa de identificação e tampa frontal quebrada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "48": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação no bloco, 1º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação no bloco, 1º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "49": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 2º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 2º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "50": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 3º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 3º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "51": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 1º e 2º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 1º e 2º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "52": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 1º e 3º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 1º e 3º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "53": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 2º e 3º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 2º e 3º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "54": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 1º, 2º e 3º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indícios de violação, 1º, 2º e 3º elemento inoperante e Elemento Móvel (disco girométrico) parcialmente preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "55": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) preso, tampa blindada violada, eixo e mancal do disco danificados.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) preso, tampa blindada violada, eixo e mancal do disco danificados.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "56": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) girando ao contrário na Carga Indutiva (CI).",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com Elemento Móvel (disco girométrico) girando ao contrário na Carga Indutiva (CI).",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "57": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se queimado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se queimado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "58": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se com borne queimado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se com borne queimado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "59": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se com parafuso emperrado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se com parafuso emperrado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "60": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se sem placa de identificação.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se sem placa de identificação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "61": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor apresenta jumper externo entre Linha e Carga.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor apresenta jumper externo entre Linha e Carga.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "62": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Ensaio não realizado: medidor não inicializa, com display apagado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Ensaio não realizado: medidor não inicializa, com display apagado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "63": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Ensaio não realizado: medidor não inicializa, com display apagado e em curto circuito interno.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Ensaio não realizado: medidor não inicializa, com display apagado e em curto circuito interno.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "64": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico com perda de programação impossibilitando a identificação dos erros percentuais.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico com perda de programação impossibilitando a identificação dos erros percentuais.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "65": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico com indícios de violação, apresentando dispositivo eletrônico (controle remoto e/ou timer) em seu interior.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico com indícios de violação, apresentando dispositivo eletrônico (controle remoto e/ou timer) em seu interior.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "66": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico apresentando ensaio de Registrador/Leitura incorretos apresentando Código 003 (KVAR) e Código 024 (KWH).",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico apresentando ensaio de Registrador/Leitura incorretos apresentando Código 003 (KVAR) e Código 024 (KWH).",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "67": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico apresentando botão do mostrador/demanda danificado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico apresentando botão do mostrador/demanda danificado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "68": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Ensaio não realizado: Emite pulsos sem carga impossibilitando seu perfeito funcionamento.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Ensaio não realizado: Emite pulsos sem carga impossibilitando seu perfeito funcionamento.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "69": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico NÃO emite pulsos impossibilitando seu perfeito funcionamento.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor eletrônico NÃO emite pulsos impossibilitando seu perfeito funcionamento.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "70": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se danificado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se danificado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "71": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se com borne quebrado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se com borne quebrado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "72": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se com borne quebrado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Não foi possível realizar o ensaio do medidor, pois o mesmo encontra-se com borne quebrado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "73": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com display danificado/desacoplado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com display danificado/desacoplado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "74": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a tampa protetora furada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a tampa protetora furada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "75": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a engrenagem do registrador limada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a engrenagem do registrador limada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "76": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indício(s) de violação no bloco.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com indício(s) de violação no bloco.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "77": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com eixo e mancal do disco danificado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com eixo e mancal do disco danificado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "78": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se danificado.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se danificado.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "79": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a engrenagem do registrador trocada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a engrenagem do registrador trocada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "80": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor encontra-se com a tampa de proteção Furada e o Disco Preso por Grampos Etc.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor encontra-se com a tampa de proteção Furada e o Disco Preso por Grampos Etc.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "81": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com o Elemento Móvel (disco girométrico) preso.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com o Elemento Móvel (disco girométrico) preso.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "82": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a tampa de proteção Cerrada.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. O medidor encontra-se com a tampa de proteção Cerrada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "83": {
+      "label": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor apresenta falha no sistema operacional exibindo no display mensagem (INFO 14), sem referências corretas de medição, impedindo o registro efetivo do consumo.",
+      "description": "O medidor não está funcionando de acordo com o Regulamento Técnico Metrológico acima referenciado. Medidor apresenta falha no sistema operacional exibindo no display mensagem (INFO 14), sem referências corretas de medição, impedindo o registro efetivo do consumo.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "100": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando perda de parâmetros, com defeito em relação as características de fabricação. Porém não influencia no registro de consumo.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando perda de parâmetros, com defeito em relação as características de fabricação. Porém não influencia no registro de consumo.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "101": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando perda de parâmetros, com defeito em relação as características de fabricação. Impossibilitando a verificação metrológica do medidor.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando perda de parâmetros, com defeito em relação as características de fabricação. Impossibilitando a verificação metrológica do medidor.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": "C"
     },
     "102": {
-      "label": null,
-      "description": null,
-      "status": "pending",
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. Não apresentando evolução no registro de consumo, código INFO 14 e ou/ INFO 15 no display, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. Não apresentando evolução no registro de consumo, código INFO 14 e ou/ INFO 15 no display, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
       "tier": "C"
+    },
+    "103": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. O valor do registrador geral (código-03), está inferior a soma do código 04 (ponta) e 08 (fora de ponta).",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. O valor do registrador geral (código-03), está inferior a soma do código 04 (ponta) e 08 (fora de ponta).",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "104": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando display apagado/escurecido/travado e/ou desconfigurado, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando display apagado/escurecido/travado e/ou desconfigurado, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": "B"
+    },
+    "105": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando display do medidor parcialmente escurecido, possibilitando leitura, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando display do medidor parcialmente escurecido, possibilitando leitura, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "106": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, registrador ciclometrico com números desordenados, impossibilitando o registro do consumo, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, registrador ciclometrico com números desordenados, impossibilitando o registro do consumo, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": "B"
+    },
+    "107": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, engrenagens ressecada/quebrada, soltas no interior do medidor, impossibilitando o registro de consumo.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, engrenagens ressecada/quebrada, soltas no interior do medidor, impossibilitando o registro de consumo.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": "C"
+    },
+    "108": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando registrador fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando registrador fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
     },
     "109": {
-      "label": null,
-      "description": null,
-      "status": "pending",
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando engrenagem do registrador fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando engrenagem do registrador fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
       "tier": "C"
     },
+    "110": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando escalas de grandezas do registrador alteradas, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando escalas de grandezas do registrador alteradas, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "111": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, não emitindo pulsos, sem variação de leitura, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, não emitindo pulsos, sem variação de leitura, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": "B"
+    },
+    "112": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, LED de calibração danificado (pulso acelerado), com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, LED de calibração danificado (pulso acelerado), com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "113": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, LED de calibração apagado e/ou danificado, com defeito em relação as características de fabricação, porém com avanço de leitura.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, LED de calibração apagado e/ou danificado, com defeito em relação as características de fabricação, porém com avanço de leitura.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "114": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, emitindo pulsos sem carga, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, emitindo pulsos sem carga, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
     "115": {
-      "label": null,
-      "description": null,
-      "status": "pending",
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com bornes queimados/derretidos/oxidados, impedindo conexão com a mesa de aferição e impossibilitando o teste de identificação dos erros, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com bornes queimados/derretidos/oxidados, impedindo conexão com a mesa de aferição e impossibilitando o teste de identificação dos erros, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": "C"
+    },
+    "116": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com bloco terminais danificado, sem acesso ao interior do medidor, com defeito em relação as características de fabricação, porém não influencia no funcionamento da medição.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com bloco terminais danificado, sem acesso ao interior do medidor, com defeito em relação as características de fabricação, porém não influencia no funcionamento da medição.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "117": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, blocos terminais danificados, possibilitando acesso ao interior do medidor, com defeito em relação as características de fabricação, porém não influencia no funcionamento da medição.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, blocos terminais danificados, possibilitando acesso ao interior do medidor, com defeito em relação as características de fabricação, porém não influencia no funcionamento da medição.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "118": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando furo no bloco de terminais, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando furo no bloco de terminais, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "119": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, erros percentuais incompatíveis com sua classe de exatidão. Carga (S) CP/CI/CN alterada (S).",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, erros percentuais incompatíveis com sua classe de exatidão. Carga (S) CP/CI/CN alterada (S).",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "120": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, ajustes internos das cargas CN/CI/CP fora de parâmetros da norma e das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, ajustes internos das cargas CN/CI/CP fora de parâmetros da norma e das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "121": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão incompatíveis com sua classe de exatidão, elemento (S) inoperante (S).",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão incompatíveis com sua classe de exatidão, elemento (S) inoperante (S).",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": "B"
+    },
+    "122": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, circuito de tensão e/ou corrente, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, circuito de tensão e/ou corrente, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "123": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando circuito de tensão e/ou corrente fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando circuito de tensão e/ou corrente fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "124": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, bobina de potencial queimada/danificada impossibilitando o registro correto de consumo, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, bobina de potencial queimada/danificada impossibilitando o registro correto de consumo, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "125": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando evidências de manipulação na bobina de potencial, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando evidências de manipulação na bobina de potencial, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "126": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando bobina de potencial aberta, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando bobina de potencial aberta, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "127": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando bobina de tensão e/ou corrente fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando bobina de tensão e/ou corrente fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "128": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, elemento móvel com marcas de arranhões na parte inferior e/ou superior.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, elemento móvel com marcas de arranhões na parte inferior e/ou superior.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "129": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com objeto estranho inserido em seu interior, prendendo o elemento móvel, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com objeto estranho inserido em seu interior, prendendo o elemento móvel, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "130": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando acoplamento de imã em sua parte externa, influenciando no funcionamento da medição, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando acoplamento de imã em sua parte externa, influenciando no funcionamento da medição, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "131": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando elemento móvel empenado, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando elemento móvel empenado, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "132": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com elemento móvel total ou parcialmente preso, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com elemento móvel total ou parcialmente preso, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "133": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando mancal superior e/ou inferior com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando mancal superior e/ou inferior com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "134": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com mancal superior e/ou inferior, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com mancal superior e/ou inferior, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "135": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando conjunto frenador fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando conjunto frenador fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "136": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando conjunto frenador com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando conjunto frenador com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "137": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, bloco de terminais (shunt/elo de aferição) interno, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, bloco de terminais (shunt/elo de aferição) interno, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "138": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando elo de aferição externo com marcas de manipulação. Porém não influencia no funcionamento da medição.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando elo de aferição externo com marcas de manipulação. Porém não influencia no funcionamento da medição.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "139": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando elo de aferição externo aberto, impossibilitando o registro do consumo, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando elo de aferição externo aberto, impossibilitando o registro do consumo, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "140": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com tampa do medidor danificada, sem acesso ao interior do medidor, com defeito em relação as características de fabricação, porém não influencia no funcionamento da medição.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com tampa do medidor danificada, sem acesso ao interior do medidor, com defeito em relação as características de fabricação, porém não influencia no funcionamento da medição.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "141": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal do medidor violada, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal do medidor violada, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "142": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal de vidro do medidor trincada.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal de vidro do medidor trincada.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "143": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando apresenta tampa principal quebrada dentro do invólucro (Perda de características), impossibilitando a verificação metrológica do medidor.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando apresenta tampa principal quebrada dentro do invólucro (Perda de características), impossibilitando a verificação metrológica do medidor.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "144": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal alterada, fora das características de fabricação, impossibilitando verificação visual da leitura.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal alterada, fora das características de fabricação, impossibilitando verificação visual da leitura.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "145": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, base do medidor violada, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, base do medidor violada, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
       "tier": "C"
     },
     "146": {
-      "label": null,
-      "description": null,
-      "status": "pending",
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, base do medidor violada e elemento (S) inoperante (S), fora das características de fabricação",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, base do medidor violada e elemento (S) inoperante (S), fora das características de fabricação",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
       "tier": "C"
     },
-    "145": {
-      "label": null,
-      "description": null,
-      "status": "pending",
-      "tier": "C"
+    "147": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando base do medidor danificada.. Porém não influencia no funcionamento da medição.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando base do medidor danificada.. Porém não influencia no funcionamento da medição.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
     },
-    "101": {
-      "label": null,
-      "description": null,
-      "status": "pending",
-      "tier": "C"
+    "148": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando dispositivo/componente eletrônico inserido em seu interior, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando dispositivo/componente eletrônico inserido em seu interior, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
     },
-    "107": {
-      "label": null,
-      "description": null,
-      "status": "pending",
-      "tier": "C"
+    "149": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando placa eletrônica trocada, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando placa eletrônica trocada, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "150": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos ausentes, possibilitando acesso ao interior do medidor, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos ausentes, possibilitando acesso ao interior do medidor, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "151": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos ausentes, sem acesso ao interior do medidor, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos ausentes, sem acesso ao interior do medidor, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "152": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos manipulados, sem acesso ao interior do medidor, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos manipulados, sem acesso ao interior do medidor, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "153": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos manipulados, com acesso ao interior do medidor, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos manipulados, com acesso ao interior do medidor, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "154": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando defeito em relação as características de fabricação por ação do tempo ou ação mecânica.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando defeito em relação as características de fabricação por ação do tempo ou ação mecânica.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "155": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, pois está queimado/carbonizado/destruído, impossibilitando a realização dos ensaios metrológicos, em desacordo com as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, pois está queimado/carbonizado/destruído, impossibilitando a realização dos ensaios metrológicos, em desacordo com as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "156": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, pois está parcialmente ou totalmente carbonizado, em desacordo com as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, pois está parcialmente ou totalmente carbonizado, em desacordo com as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "157": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando oxidação externa, em desacordo com as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando oxidação externa, em desacordo com as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "158": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando componentes internos oxidados, impossibilitando a realização dos ensaios, em desacordo com as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando componentes internos oxidados, impossibilitando a realização dos ensaios, em desacordo com as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "159": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando placa de identificação fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando placa de identificação fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "160": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, placa de identificação em desacordo com as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, placa de identificação em desacordo com as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "161": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com detritos e/ou penetração de água e/ou insetos em seu interior, impossibilitando o registro de consumo, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, com detritos e/ou penetração de água e/ou insetos em seu interior, impossibilitando o registro de consumo, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "162": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando curto-circuito, impossibilitando a realização dos ensaios, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando curto-circuito, impossibilitando a realização dos ensaios, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "163": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando inserção de jump interno/externo, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando inserção de jump interno/externo, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "164": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa da porta óptica faltando, porém não influenciou no registro de consumo.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa da porta óptica faltando, porém não influenciou no registro de consumo.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "165": {
+      "label": "O medidor está de acordo com o Regulamento Técnico Metrológico acima referenciado, erros percentuais COMPATÍVEIS com sua classe de exatidão.",
+      "description": "O medidor está de acordo com o Regulamento Técnico Metrológico acima referenciado, erros percentuais COMPATÍVEIS com sua classe de exatidão.",
+      "situacao_codigo": "A",
+      "situacao_label": "Aprovado",
+      "status": "confirmado",
+      "tier": "B"
+    },
+    "169": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, o TLI (Terminal de Leitura Individual) não foi apresentado junto ao medidor, porém não influencia no registro do consumo, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, o TLI (Terminal de Leitura Individual) não foi apresentado junto ao medidor, porém não influencia no registro do consumo, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "170": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. O valor do registrador geral (código-03), está inferior a soma do código 04 (ponta) e 08 (fora de ponta), com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. O valor do registrador geral (código-03), está inferior a soma do código 04 (ponta) e 08 (fora de ponta), com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "171": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, erros percentuais incompatíveis com sua classe de exatidão. Carga (S) CP/CI/CN alterada (S), com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, erros percentuais incompatíveis com sua classe de exatidão. Carga (S) CP/CI/CN alterada (S), com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "172": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão incompatíveis com sua classe de exatidão, elemento (S) inoperante (S), com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão incompatíveis com sua classe de exatidão, elemento (S) inoperante (S), com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "173": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão incompatíveis com sua classe de exatidão, elemento (S) inoperante (S), fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado. Os erros percentuais do medidor estão incompatíveis com sua classe de exatidão, elemento (S) inoperante (S), fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "174": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, elemento móvel com marcas de arranhões na parte inferior e/ou superior, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, elemento móvel com marcas de arranhões na parte inferior e/ou superior, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "175": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, elemento móvel com marcas de arranhões na parte inferior e/ou superior, fora das características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, elemento móvel com marcas de arranhões na parte inferior e/ou superior, fora das características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "176": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal de vidro do medidor trincada, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal de vidro do medidor trincada, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "177": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal quebrada dentro do invólucro (Perda de características), impossibilitando a verificação metrológica do medidor, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, apresentando tampa principal quebrada dentro do invólucro (Perda de características), impossibilitando a verificação metrológica do medidor, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
+    },
+    "178": {
+      "label": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos ausentes, sem acesso ao interior do medidor, com defeito em relação as características de fabricação.",
+      "description": "O medidor não está de acordo com o Regulamento Técnico Metrológico acima referenciado, selos ausentes, sem acesso ao interior do medidor, com defeito em relação as características de fabricação.",
+      "situacao_codigo": "R",
+      "situacao_label": "Reprovado",
+      "status": "confirmado",
+      "tier": null
     }
   }
 }
