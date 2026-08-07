@@ -12,6 +12,7 @@ from api.model_runtime import ClassTierInfo, ModelRuntime, ModelRuntimeError, lo
 from api.services.inspecao import analisar_csv_upload, analisar_laudo_sintetico
 from llm.analysis import compose_resultado, compose_resultado_detalhado
 from llm.config import LlmSettings
+from llm.glossary import CodrstaferGlossary, GlossaryEntry
 
 
 def test_compose_resultado_codigo_mais_camada() -> None:
@@ -52,16 +53,16 @@ class _FakePipeline:
 
 
 class _FakeChampion:
-    def __init__(self, label: int = 0):
+    def __init__(self, label: int = 0, proba_row: list[float] | None = None):
         self._label = label
+        self._proba_row = proba_row or [0.8, 0.2]
 
     def predict(self, x):
         return np.array([self._label] * len(x))
 
     def predict_proba(self, x):
         n = len(x)
-        # duas classes: [0.8, 0.2]
-        return np.tile(np.array([[0.8, 0.2]]), (n, 1))
+        return np.tile(np.array([self._proba_row]), (n, 1))
 
 
 def _fake_runtime(
@@ -69,13 +70,14 @@ def _fake_runtime(
     predicted_index: int = 0,
     include_class: bool = True,
     tier: str = "A",
+    proba_row: list[float] | None = None,
 ) -> ModelRuntime:
     lookup = {}
     if include_class:
         lookup["10"] = ClassTierInfo(classe="10", tier=tier, weight=0.15, count=100, percentage=40.0)
         lookup["1"] = ClassTierInfo(classe="1", tier="A", weight=0.2, count=80, percentage=30.0)
     return ModelRuntime(
-        champion=_FakeChampion(predicted_index),
+        champion=_FakeChampion(predicted_index, proba_row=proba_row),
         preprocessing_pipeline=_FakePipeline(),
         target_classes=("10", "1"),
         class_lookup=lookup,
@@ -116,6 +118,71 @@ def test_analisar_laudo_sintetico_classe_fora_do_registry_revisao_manual() -> No
     assert response.camada == "D"
     assert response.resultado == "Revisão manual"
     assert response.predict_proba is not None
+
+
+def test_analisar_laudo_sintetico_predict_proba_alta_confianca_trunca_para_classe_prevista() -> None:
+    laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
+    response = analisar_laudo_sintetico(
+        laudo,
+        _fake_runtime(predicted_index=0, proba_row=[0.95, 0.05]),
+        llm_settings=LlmSettings(enabled=False),
+    )
+
+    assert response.classe_prevista == "10"
+    assert response.predict_proba == {"10": pytest.approx(0.95)}
+
+
+def test_analisar_laudo_sintetico_predict_proba_baixa_confianca_mantem_ordenacao_decrescente() -> None:
+    laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
+    response = analisar_laudo_sintetico(
+        laudo,
+        _fake_runtime(predicted_index=0, proba_row=[0.6, 0.4]),
+        llm_settings=LlmSettings(enabled=False),
+    )
+
+    assert response.predict_proba is not None
+    assert list(response.predict_proba.keys()) == ["10", "1"]
+    assert response.predict_proba["10"] == pytest.approx(0.6)
+    assert response.predict_proba["1"] == pytest.approx(0.4)
+
+
+def test_analisar_laudo_sintetico_situacao_afericao_populada_com_glossario() -> None:
+    laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
+    glossary = CodrstaferGlossary(
+        version="test",
+        status="confirmado",
+        entries={
+            "10": GlossaryEntry(
+                code="10",
+                label="Reprovado",
+                description="desc",
+                situacao_codigo="R",
+                situacao_label="Reprovado",
+            )
+        },
+    )
+    response = analisar_laudo_sintetico(
+        laudo,
+        _fake_runtime(predicted_index=0),
+        llm_settings=LlmSettings(enabled=False),
+        glossary=glossary,
+    )
+
+    assert response.classe_prevista == "10"
+    assert response.situacao_afericao == "Reprovado"
+
+
+def test_analisar_laudo_sintetico_situacao_afericao_none_quando_classe_ausente_do_glossario() -> None:
+    laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
+    glossary = CodrstaferGlossary(version="test", status="confirmado", entries={})
+    response = analisar_laudo_sintetico(
+        laudo,
+        _fake_runtime(predicted_index=0),
+        llm_settings=LlmSettings(enabled=False),
+        glossary=glossary,
+    )
+
+    assert response.situacao_afericao is None
 
 
 def test_analisar_sem_runtime_levanta_model_runtime_error() -> None:

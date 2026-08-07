@@ -42,11 +42,23 @@ def _require_runtime(runtime: ModelRuntime | None) -> ModelRuntime:
     return runtime
 
 
-def _to_response(result: InferenceResult) -> InspecaoLaudoResponse:
+def _situacao_afericao(classe_prevista: str, glossary: CodrstaferGlossary | None) -> str | None:
+    if glossary is None:
+        return None
+    entry = glossary.get(classe_prevista)
+    return entry.situacao_label if entry is not None else None
+
+
+def _to_response(
+    result: InferenceResult,
+    *,
+    glossary: CodrstaferGlossary | None = None,
+) -> InspecaoLaudoResponse:
     return InspecaoLaudoResponse(
         numero_laudo=result.numero_laudo,
         classe_prevista=result.classe_prevista,
         camada=result.camada,
+        situacao_afericao=_situacao_afericao(result.classe_prevista, glossary),
         resultado=result.resultado,
         resultado_detalhado=result.resultado_detalhado,
         predict_proba=result.predict_proba or None,
@@ -107,6 +119,7 @@ def analisar_laudo_completo(
 ) -> InspecaoLaudoResponse:
     resolved = _require_runtime(runtime)
     result = infer_one(laudo, resolved)
+    resolved_glossary = glossary if glossary is not None else load_codrstafer_glossary()
     enriched = _attach_llm_review(
         result,
         laudo,
@@ -114,14 +127,14 @@ def analisar_laudo_completo(
         force_revisao_llm=revisao_llm,
         llm_reviewer=llm_reviewer,
         llm_settings=llm_settings,
-        glossary=glossary if glossary is not None else load_codrstafer_glossary(),
+        glossary=resolved_glossary,
         class_metrics_lookup=(
             class_metrics_lookup
             if class_metrics_lookup is not None
             else load_class_metrics_lookup()
         ),
     )
-    return _to_response(enriched)
+    return _to_response(enriched, glossary=resolved_glossary)
 
 
 def analisar_laudo_sintetico(
@@ -136,6 +149,7 @@ def analisar_laudo_sintetico(
 ) -> InspecaoLaudoResponse:
     resolved = _require_runtime(runtime)
     result = infer_one(laudo, resolved)
+    resolved_glossary = glossary if glossary is not None else load_codrstafer_glossary()
     enriched = _attach_llm_review(
         result,
         laudo,
@@ -143,26 +157,29 @@ def analisar_laudo_sintetico(
         force_revisao_llm=revisao_llm,
         llm_reviewer=llm_reviewer,
         llm_settings=llm_settings,
-        glossary=glossary if glossary is not None else load_codrstafer_glossary(),
+        glossary=resolved_glossary,
         class_metrics_lookup=(
             class_metrics_lookup
             if class_metrics_lookup is not None
             else load_class_metrics_lookup()
         ),
     )
-    return _to_response(enriched)
+    return _to_response(enriched, glossary=resolved_glossary)
 
 
 def analisar_csv_upload(
     laudos: list[object],
     runtime: ModelRuntime | None,
+    *,
+    glossary: CodrstaferGlossary | None = None,
 ) -> list[InspecaoLaudoCsvItemResponse]:
     """CSV em lote: apenas template (sem LLM linha a linha)."""
     resolved = _require_runtime(runtime)
+    resolved_glossary = glossary if glossary is not None else load_codrstafer_glossary()
     items: list[InspecaoLaudoCsvItemResponse] = []
     for line_number, laudo in enumerate(laudos, start=1):
         result = infer_one(laudo, resolved)
-        base = _to_response(result)
+        base = _to_response(result, glossary=resolved_glossary)
         items.append(
             InspecaoLaudoCsvItemResponse(
                 **base.model_dump(),

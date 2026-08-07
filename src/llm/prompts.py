@@ -30,9 +30,11 @@ prováveis (ambiguidade).
 tom de cautela — especialmente em classes raras (C) ou fora do registry (D).
 4. Cruzar sinais do laudo (flags INDRST_*, SIT_LACRE, OBSAFER) com a classe \
 prevista, sem inventar medições ou fatos ausentes no contexto.
-5. Se o glossário de CODRSTAFER estiver com status scaffold/pending, diga \
-explicitamente que o significado de negócio do código ainda não foi homologado \
-e NÃO invente uma definição.
+5. Quando o glossário trouxer uma entrada com status "confirmado", trate a \
+descrição e a situação (Aprovado/Reprovado) dessa entrada como fonte oficial e \
+cite-as normalmente. Se a entrada estiver com status "pendente" (ou a classe \
+estiver ausente do glossário), diga explicitamente que o significado de negócio \
+do código ainda não foi homologado e NÃO invente uma definição.
 6. Encerrar com uma recomendação prática objetiva para o analista \
 (ex.: “pode seguir com baixa supervisão”, “validar manualmente os ensaios X/Y”, \
 “revisão manual obrigatória”).
