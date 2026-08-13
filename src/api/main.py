@@ -11,7 +11,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 from llm.reviewer import build_default_reviewer
 from log import get_log
@@ -72,3 +72,26 @@ app = FastAPI(
 )
 
 app.include_router(inspecao_router)
+
+
+@app.get(
+    "/health",
+    tags=["Infra"],
+    summary="Saúde da API e carga do modelo compilado",
+    description=(
+        "Indica se o processo está no ar e se o runtime de inferência "
+        "(champion.pkl + preprocessing_pipeline.pkl) foi carregado no startup. "
+        "Sempre responde 200: `status=degraded` quando os artefatos PKL não "
+        "estiverem disponíveis — útil como health check de PaaS sem derrubar "
+        "o container."
+    ),
+)
+def health(request: Request) -> dict[str, object]:
+    runtime = getattr(request.app.state, "runtime", None)
+    metadata = getattr(runtime, "champion_metadata", None) or {}
+    return {
+        "status": "ok" if runtime is not None else "degraded",
+        "runtime_loaded": runtime is not None,
+        "champion_algorithm": metadata.get("algorithm"),
+        "champion_resampling": metadata.get("resampling"),
+    }

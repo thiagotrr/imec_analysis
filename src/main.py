@@ -76,16 +76,21 @@ def _resolve_api_run_config(args: argparse.Namespace) -> dict[str, object]:
         port = args.port
     elif env.get("IMEC_API_PORT"):
         port = int(env["IMEC_API_PORT"])
+    elif env.get("PORT"):
+        # Cloud Run, Render, Koyeb e similares injetam PORT.
+        port = int(env["PORT"])
     else:
         port = DEFAULT_HTTPS_PORT if https_enabled else DEFAULT_HTTP_PORT
 
     if not (1 <= port <= 65535):
         raise ValueError(f"Porta inválida: {port}. Use um valor entre 1 e 65535.")
 
+    # Em PaaS a variável PORT está presente: reload de desenvolvimento não deve ligar.
+    default_reload = not bool(env.get("PORT"))
     reload_enabled = (
         args.reload
         if args.reload is not None
-        else _parse_bool_env(env.get("IMEC_API_RELOAD"), default=True)
+        else _parse_bool_env(env.get("IMEC_API_RELOAD"), default=default_reload)
     )
 
     ssl_certfile = args.ssl_certfile or env.get("IMEC_API_SSL_CERTFILE")
@@ -222,14 +227,18 @@ def build_arg_parser() -> argparse.ArgumentParser:
         type=int,
         help=(
             "Porta do uvicorn. Padrão: 8000 (HTTP) ou 8443 (HTTPS). "
-            "Também aceita IMEC_API_PORT."
+            "Também aceita IMEC_API_PORT ou PORT (PaaS)."
         ),
     )
     parser.add_argument(
         "--reload",
         action=argparse.BooleanOptionalAction,
         default=None,
-        help="Ativa/desativa reload automático (padrão: ligado; também IMEC_API_RELOAD).",
+        help=(
+            "Ativa/desativa reload automático (padrão: ligado localmente; "
+            "desligado quando PORT está definido, típico de PaaS). "
+            "Também IMEC_API_RELOAD."
+        ),
     )
     parser.add_argument(
         "--https",
