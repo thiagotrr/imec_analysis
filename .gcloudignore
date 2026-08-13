@@ -1,0 +1,46 @@
+# Upload para Cloud Build (`gcloud run deploy --source .`).
+# O que entra na IMAGEM continua sendo filtrado pelo `.dockerignore`.
+# Os PKLs em model/ NÃO devem ser ignorados — a API precisa deles.
+
+.git
+.gitignore
+.gcloudignore
+
+# Segredos e ambiente local
+.env
+.env.*
+!.env.example
+.envrc
+
+# TLS de desenvolvimento local (Cloud Run fornece HTTPS)
+certs/
+
+# Ambientes e caches
+.venv/
+venv/
+env/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.vscode/
+.cursor/
+logs/
+catboost_info/
+
+# Não usados no container da API
+tests/
+scripts/
+docs/
+*.xlsx
+*.md
+!requirements.txt
+
+# Artefatos de exploração (não necessários em runtime)
+model/exploration/*.png
+model/exploration/*.html
+model/classification/*.csv

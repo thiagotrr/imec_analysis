@@ -207,6 +207,7 @@ def test_openapi_schema_includes_all_four_endpoints_with_expected_tag(client: Te
         ("/inspecao/csv", "post"),
         ("/inspecao/modelos", "get"),
     }
+    assert "/health" in schema["paths"]
     found_operations = set()
     all_tags: set[str] = set()
     for path, methods in schema["paths"].items():
@@ -220,7 +221,7 @@ def test_openapi_schema_includes_all_four_endpoints_with_expected_tag(client: Te
                 assert "422" in operation.get("responses", {}) or "500" in operation.get("responses", {})
 
     assert found_operations == expected_operations
-    assert all_tags == {TAG}
+    assert TAG in all_tags
     assert "Análise de Inspeção de Medidor de Consumo" not in {
         tag.get("name") for tag in schema.get("tags", [])
     }
@@ -233,6 +234,17 @@ def test_openapi_schema_includes_all_four_endpoints_with_expected_tag(client: Te
 def test_docs_endpoint_is_served(client: TestClient) -> None:
     response = client.get("/docs")
     assert response.status_code == 200
+
+
+def test_health_reports_runtime_status(client: TestClient) -> None:
+    response = client.get("/health")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] in {"ok", "degraded"}
+    assert isinstance(payload["runtime_loaded"], bool)
+    if payload["runtime_loaded"]:
+        assert payload["status"] == "ok"
+        assert payload.get("champion_algorithm")
 
 
 def test_model_runtime_error_is_public() -> None:
