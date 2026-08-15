@@ -374,6 +374,12 @@ Nada disto altera os PKLs locais nem exige re-treino.
 
 ---
 
+## 8. Runbook operacional
+
+Passo a passo do zero, deploys seguintes, build local vs Cloud Build e **deploy automático em todo pull request**: [deploy_cloud_run.md](deploy_cloud_run.md).
+
+---
+
 ## Referências
 
 - Cloud Run (visão geral e scale-to-zero): https://cloud.google.com/run/docs/overview/what-is-cloud-run
