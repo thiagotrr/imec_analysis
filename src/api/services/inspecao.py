@@ -49,6 +49,26 @@ def _situacao_afericao(classe_prevista: str, glossary: CodrstaferGlossary | None
     return entry.situacao_label if entry is not None else None
 
 
+def _dsc_classe_prevista(classe_prevista: str, glossary: CodrstaferGlossary | None) -> str | None:
+    if glossary is None:
+        return None
+    entry = glossary.get(classe_prevista)
+    return entry.description if entry is not None else None
+
+
+def _dsc_predict_proba(
+    predict_proba: dict[str, float], glossary: CodrstaferGlossary | None
+) -> dict[str, str] | None:
+    if glossary is None or not predict_proba:
+        return None
+    descriptions = {
+        code: entry.description
+        for code in predict_proba
+        if (entry := glossary.get(code)) is not None and entry.description is not None
+    }
+    return descriptions or None
+
+
 def _to_response(
     result: InferenceResult,
     *,
@@ -57,11 +77,13 @@ def _to_response(
     return InspecaoLaudoResponse(
         numero_laudo=result.numero_laudo,
         classe_prevista=result.classe_prevista,
+        dsc_classe_prevista=_dsc_classe_prevista(result.classe_prevista, glossary),
         camada=result.camada,
         situacao_afericao=_situacao_afericao(result.classe_prevista, glossary),
         resultado=result.resultado,
         resultado_detalhado=result.resultado_detalhado,
         predict_proba=result.predict_proba or None,
+        dsc_predict_proba=_dsc_predict_proba(result.predict_proba, glossary),
         revisao_llm=result.revisao_llm,
     )
 

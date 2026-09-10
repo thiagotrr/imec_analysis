@@ -185,6 +185,94 @@ def test_analisar_laudo_sintetico_situacao_afericao_none_quando_classe_ausente_d
     assert response.situacao_afericao is None
 
 
+def test_analisar_laudo_sintetico_dsc_classe_prevista_populado_com_glossario() -> None:
+    laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
+    glossary = CodrstaferGlossary(
+        version="test",
+        status="confirmado",
+        entries={
+            "10": GlossaryEntry(
+                code="10",
+                label="Reprovado",
+                description="Descritivo oficial da classe 10.",
+                situacao_codigo="R",
+                situacao_label="Reprovado",
+            )
+        },
+    )
+    response = analisar_laudo_sintetico(
+        laudo,
+        _fake_runtime(predicted_index=0),
+        llm_settings=LlmSettings(enabled=False),
+        glossary=glossary,
+    )
+
+    assert response.dsc_classe_prevista == "Descritivo oficial da classe 10."
+
+
+def test_analisar_laudo_sintetico_dsc_classe_prevista_none_quando_classe_ausente_do_glossario() -> None:
+    laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
+    glossary = CodrstaferGlossary(version="test", status="confirmado", entries={})
+    response = analisar_laudo_sintetico(
+        laudo,
+        _fake_runtime(predicted_index=0),
+        llm_settings=LlmSettings(enabled=False),
+        glossary=glossary,
+    )
+
+    assert response.dsc_classe_prevista is None
+
+
+def test_analisar_laudo_sintetico_predict_proba_baixa_confianca_limita_top3_com_descritivos() -> None:
+    laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
+    glossary = CodrstaferGlossary(
+        version="test",
+        status="confirmado",
+        entries={
+            "10": GlossaryEntry(code="10", label="L10", description="Descritivo 10"),
+            "1": GlossaryEntry(code="1", label="L1", description="Descritivo 1"),
+        },
+    )
+    response = analisar_laudo_sintetico(
+        laudo,
+        _fake_runtime(predicted_index=0, proba_row=[0.6, 0.4]),
+        llm_settings=LlmSettings(enabled=False),
+        glossary=glossary,
+    )
+
+    assert response.predict_proba is not None
+    assert len(response.predict_proba) <= 3
+    assert response.dsc_predict_proba == {"10": "Descritivo 10", "1": "Descritivo 1"}
+
+
+def test_analisar_laudo_sintetico_predict_proba_baixa_confianca_trunca_top3_de_muitas_classes() -> None:
+    laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
+    lookup = {
+        "10": ClassTierInfo(classe="10", tier="A", weight=0.15, count=100, percentage=40.0),
+        "1": ClassTierInfo(classe="1", tier="A", weight=0.2, count=80, percentage=30.0),
+        "2": ClassTierInfo(classe="2", tier="B", weight=0.1, count=10, percentage=5.0),
+        "3": ClassTierInfo(classe="3", tier="C", weight=0.05, count=5, percentage=2.0),
+    }
+    runtime = ModelRuntime(
+        champion=_FakeChampion(0, proba_row=[0.4, 0.3, 0.2, 0.1]),
+        preprocessing_pipeline=_FakePipeline(),
+        target_classes=("10", "1", "2", "3"),
+        class_lookup=lookup,
+        discard_tier_label="D",
+        retained_feature_columns=tuple(LaudoSinteticoRequest.model_fields.keys()),
+        champion_metadata={"algorithm": "fake"},
+        target_encoder=None,
+    )
+    response = analisar_laudo_sintetico(
+        laudo,
+        runtime,
+        llm_settings=LlmSettings(enabled=False),
+    )
+
+    assert response.predict_proba is not None
+    assert list(response.predict_proba.keys()) == ["10", "1", "2"]
+
+
 def test_analisar_sem_runtime_levanta_model_runtime_error() -> None:
     laudo = LaudoSinteticoRequest.model_validate(LaudoSinteticoRequest.model_config["json_schema_extra"]["example"])
     with pytest.raises(ModelRuntimeError, match="indisponível"):

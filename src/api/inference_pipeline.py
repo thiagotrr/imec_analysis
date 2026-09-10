@@ -26,6 +26,11 @@ from api.model_runtime import ClassTierInfo, ModelRuntime, ModelRuntimeError
 # ambiguidade. Configurável via env para ajuste fino sem novo deploy.
 DEFAULT_PREDICT_PROBA_HIGH_CONFIDENCE_THRESHOLD = 0.90
 
+# Quando a probabilidade da classe prevista fica abaixo do limiar de alta
+# confiança, `predict_proba` traz no máximo esse número de classes (a classe
+# prevista + as alternativas mais prováveis), em vez de toda a distribuição.
+PREDICT_PROBA_LOW_CONFIDENCE_TOP_N = 3
+
 
 def _high_confidence_threshold() -> float:
     raw = os.getenv("PREDICT_PROBA_CONFIDENCE_THRESHOLD")
@@ -93,11 +98,13 @@ def _finalize_predict_proba(
     *,
     threshold: float | None = None,
 ) -> dict[str, float]:
-    """Ordena `predict_proba` com a classe prevista primeiro e, quando sua 
+    """Ordena `predict_proba` com a classe prevista primeiro e, quando sua
     probabilidade atinge o limiar de alta confiança, remove as demais classes.
+    Abaixo do limiar, mantém no máximo as `PREDICT_PROBA_LOW_CONFIDENCE_TOP_N`
+    classes mais prováveis (top-3), em vez de toda a distribuição.
 
-    Fonte única: o dict resultante é usado tanto na response da API quanto no 
-    gate/prompt da revisão LLM (nenhuma alternativa é mostrada em nenhum lugar 
+    Fonte única: o dict resultante é usado tanto na response da API quanto no
+    gate/prompt da revisão LLM (nenhuma alternativa é mostrada em nenhum lugar
     quando a confiança já é alta).
     """
     if not predict_proba:
@@ -113,6 +120,8 @@ def _finalize_predict_proba(
         key=lambda item: item[1],
         reverse=True,
     )
+    remaining_slots = max(0, PREDICT_PROBA_LOW_CONFIDENCE_TOP_N - (1 if probabilidade_prevista is not None else 0))
+    others = others[:remaining_slots]
     if probabilidade_prevista is None:
         return dict(others)
     return {classe_prevista: probabilidade_prevista, **dict(others)}

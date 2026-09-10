@@ -13,6 +13,11 @@ class InspecaoLaudoResponse(BaseModel):
             "example": {
                 "numero_laudo": "2025006988",
                 "classe_prevista": "10",
+                "dsc_classe_prevista": (
+                    "O medidor está funcionando de acordo com o Regulamento Técnico Metrológico "
+                    "acima referenciado. Os erros percentuais do medidor estão COMPATÍVEIS com "
+                    "sua classe de exatidão."
+                ),
                 "camada": "A",
                 "situacao_afericao": "Reprovado",
                 "resultado": "Classe 10 (camada A)",
@@ -23,6 +28,13 @@ class InspecaoLaudoResponse(BaseModel):
                     "Probabilidade da classe prevista (predict_proba): 0.9123."
                 ),
                 "predict_proba": {"10": 0.9123},
+                "dsc_predict_proba": {
+                    "10": (
+                        "O medidor está funcionando de acordo com o Regulamento Técnico "
+                        "Metrológico acima referenciado. Os erros percentuais do medidor estão "
+                        "COMPATÍVEIS com sua classe de exatidão."
+                    )
+                },
                 "revisao_llm": None,
             }
         }
@@ -37,6 +49,14 @@ class InspecaoLaudoResponse(BaseModel):
         description=(
             "Classe prevista pelo modelo para `CODRSTAFER` (rótulo original, decodificado via "
             "`target_encoder.pkl` ou `champion.json → target_classes`)."
+        ),
+    )
+    dsc_classe_prevista: str | None = Field(
+        default=None,
+        description=(
+            "Descritivo oficial da classe prevista (`DSCRSTAFER`), obtido do cadastro oficial "
+            "(`model/codrstafer_glossary.json`, campo `description`). "
+            "Null quando a classe prevista não consta no glossário ou não tem descrição registrada."
         ),
     )
     camada: str | None = Field(
@@ -76,7 +96,17 @@ class InspecaoLaudoResponse(BaseModel):
             "(saída de `champion.predict_proba`), quando o modelo expõe essa API. "
             "Ordenado da maior para a menor probabilidade, com a classe prevista sempre em "
             "primeiro lugar. Quando a probabilidade da classe prevista for ≥ 90%, este campo "
-            "traz apenas essa classe (sem alternativas), para evitar ambiguidade."
+            "traz apenas essa classe (sem alternativas), para evitar ambiguidade. Abaixo desse "
+            "limiar, traz no máximo as 3 classes mais prováveis (top-3), em vez de toda a "
+            "distribuição."
+        ),
+    )
+    dsc_predict_proba: dict[str, str] | None = Field(
+        default=None,
+        description=(
+            "Descritivo oficial de cada classe presente em `predict_proba`, obtido do cadastro "
+            "oficial (`model/codrstafer_glossary.json`, campo `description`). Mesmas chaves de "
+            "`predict_proba`; classes sem descrição registrada no glossário são omitidas."
         ),
     )
 
