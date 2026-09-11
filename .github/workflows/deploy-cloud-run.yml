@@ -1,0 +1,78 @@
+name: Deploy Cloud Run (manual)
+
+# Disparo manual apenas (Task 010) — nenhum deploy automático em push/merge.
+# Ver docs/proposta_publicacao_experimental.md §3.6 para o setup único da
+# service account e do secret GCP_SA_KEY necessários antes do primeiro uso.
+on:
+  workflow_dispatch:
+    inputs:
+      llm_enabled:
+        description: "Ligar revisão LLM (requer secrets openai-api-key/gemini-api-key já no Secret Manager)"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      llm_provider:
+        description: "Provedor LLM (só relevante se llm_enabled=true)"
+        required: false
+        default: "openai"
+        type: choice
+        options: ["openai", "gemini"]
+
+env:
+  PROJECT_ID: imec-analysis
+  REGION: us-central1
+  SERVICE: imec-analysis-api
+  LLM_ENABLED: ${{ inputs.llm_enabled }}
+  LLM_PROVIDER: ${{ inputs.llm_provider }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Autenticar no GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configurar gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Selecionar secrets do Secret Manager conforme o provedor LLM
+        run: |
+          if [ "$LLM_ENABLED" = "true" ] && [ "$LLM_PROVIDER" = "openai" ]; then
+            echo "SECRETS_FLAG=JWT_SECRET=jwt-secret:latest,OPENAI_API_KEY=openai-api-key:latest" >> "$GITHUB_ENV"
+          elif [ "$LLM_ENABLED" = "true" ] && [ "$LLM_PROVIDER" = "gemini" ]; then
+            echo "SECRETS_FLAG=JWT_SECRET=jwt-secret:latest,GEMINI_API_KEY=gemini-api-key:latest" >> "$GITHUB_ENV"
+          else
+            echo "SECRETS_FLAG=JWT_SECRET=jwt-secret:latest" >> "$GITHUB_ENV"
+          fi
+
+      - name: Deploy no Cloud Run (build a partir do Dockerfile da raiz)
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --source . \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --allow-unauthenticated \
+            --memory 2Gi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 1 \
+            --timeout 300 \
+            --set-env-vars "LLM_ENABLED=$LLM_ENABLED,IMEC_API_RELOAD=false,LLM_PROVIDER=$LLM_PROVIDER,FIRESTORE_PROJECT_ID=$PROJECT_ID,FIRESTORE_DATABASE_ID=imec-analysis" \
+            --set-secrets "$SECRETS_FLAG"
+
+      - name: Exibir URL do serviço implantado
+        run: |
+          gcloud run services describe "$SERVICE" \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --format="value(status.url)"

@@ -175,6 +175,53 @@ sequenceDiagram
     CLS->>CLS: treino do algoritmo padrão (XGBoost) + cálculo de métricas
 ```
 
+### Firestore, autenticação JWT e histórico de inferências (Task 010)
+
+A API passou a exigir login para as rotas de `/inspecao/*` e para o novo grupo `/historico/*`. Detalhes completos (decisões arquiteturais, modelo de dados, infra GCP) em [docs/task010_firestore_auth_historico.md](docs/task010_firestore_auth_historico.md).
+
+**Configuração local (`.env`):**
+
+```
+FIRESTORE_ENABLED=true
+FIRESTORE_PROJECT_ID=imec-analysis
+FIRESTORE_DATABASE_ID=imec-analysis
+JWT_SECRET=<gerar com: python -c "import secrets; print(secrets.token_urlsafe(48))">
+JWT_EXPIRE_MINUTES=480
+```
+
+Sem essas variáveis, a API continua subindo normalmente (fail-soft), mas `/auth/login`, `/historico/*` e a persistência de inferências ficam indisponíveis.
+
+**Infra GCP (Firestore):**
+
+```powershell
+./scripts/db/firestore/setup_gcp.ps1
+```
+
+Sem PowerShell/`gcloud` local? Equivalente em bash para rodar no Cloud Shell (console.cloud.google.com):
+
+```bash
+./scripts/db/firestore/setup_gcp.sh
+```
+
+Cria/habilita a API Firestore, o banco `imec-analysis` (Native, `us-central1`), o binding IAM da service account do Cloud Run e o índice composto usado pela consulta de histórico. Idempotente — pode ser reexecutado.
+
+**Criação de usuários (não há cadastro público via HTTP):**
+
+```powershell
+python scripts/db/firestore/gerenciar_usuarios.py create-user     # cadastro individual, interativo
+python scripts/db/firestore/gerenciar_usuarios.py load-initial    # carga em lote a partir de usuarios.json (mesmo diretório, nunca commitado)
+```
+
+**Uso da API autenticada:**
+
+```powershell
+curl -X POST http://localhost:8000/auth/login -H "Content-Type: application/json" -d "{\"email\": \"fulano@energisa.com.br\", \"senha\": \"...\"}"
+# -> {"access_token": "...", "token_type": "bearer", "expires_in": 28800}
+
+curl http://localhost:8000/inspecao/modelos -H "Authorization: Bearer <access_token>"
+curl http://localhost:8000/historico/2025006988 -H "Authorization: Bearer <access_token>"
+```
+
 ### Qualificação de classes (`model/class_weight_registry.json`)
 
 Artefato persistido junto aos demais outputs de [model](model) (não é descartável como o conteúdo de [model/exploration](model/exploration)): classifica cada classe do target `CODRSTAFER` em uma camada de representatividade — **A**, **B**, **C** ou **D** — e registra, por classe retida, contagem, percentual sobre o total de linhas e peso balanceado (`weight`, mesma fórmula do `class_weight="balanced"` do scikit-learn). Os limiares percentuais que definem cada camada vêm de uma única fonte, `CLASS_TIER_THRESHOLDS` em [src/machine_learning/feature_engineering.py](src/machine_learning/feature_engineering.py). Classes da camada **D** (cauda estatística, sem volume suficiente para qualquer técnica de modelagem/augmentation) são descartadas do treino. O registro serve tanto para auditoria do expurgo quanto como insumo futuro para uma narrativa via LLM sobre a confiabilidade esperada da predição, com base na camada/peso da classe prevista.

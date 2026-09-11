@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -27,6 +28,14 @@ import pytest
 os.environ["LLM_ENABLED"] = "false"
 os.environ.pop("OPENAI_API_KEY", None)
 os.environ.pop("GEMINI_API_KEY", None)
+
+# Mesmo raciocínio para Firestore/JWT (Task 010): testes automatizados nunca
+# devem tentar se conectar a um Firestore real, mesmo que o ambiente tenha
+# credenciais ADC configuradas para uso manual da API. Testes que exercitam
+# o fluxo de auth/histórico usam fakes/stubs in-memory injetados diretamente
+# (via app.state ou monkeypatch), não dependem dessas variáveis.
+os.environ["FIRESTORE_ENABLED"] = "false"
+os.environ.setdefault("JWT_SECRET", "test-secret-nao-usar-em-producao")
 
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_DIR) not in sys.path:
@@ -101,3 +110,112 @@ def _build_synthetic_dataset(n_rows: int = 600, random_state: int = 42) -> pd.Da
 @pytest.fixture()
 def synthetic_dataset() -> pd.DataFrame:
     return _build_synthetic_dataset()
+
+
+# ---------------------------------------------------------------------------
+# Fake Firestore (Task 010) — stub in-memory usado pelos testes de
+# auth/histórico, sem tocar um Firestore real. Implementa só o subset da API
+# do SDK realmente usado por `src/auth/users_repository.py` e
+# `src/api/services/historico.py`: document().set()/.get(), collection().add()
+# e a cadeia where()/order_by()/limit()/stream().
+# ---------------------------------------------------------------------------
+
+
+class _FakeDocSnapshot:
+    def __init__(self, doc_id: str, data: dict | None) -> None:
+        self.id = doc_id
+        self._data = data
+        self.exists = data is not None
+
+    def to_dict(self) -> dict | None:
+        return dict(self._data) if self._data is not None else None
+
+
+class _FakeDocRef:
+    def __init__(self, collection: "_FakeCollection", doc_id: str) -> None:
+        self._collection = collection
+        self.id = doc_id
+
+    def set(self, data: dict) -> None:
+        self._collection.docs[self.id] = dict(data)
+
+    def get(self) -> _FakeDocSnapshot:
+        return _FakeDocSnapshot(self.id, self._collection.docs.get(self.id))
+
+
+class _FakeQuery:
+    def __init__(self, docs: dict[str, dict], filters=None, order_field=None, direction=None, limit_n=None) -> None:
+        self._docs = docs
+        self._filters = filters or []
+        self._order_field = order_field
+        self._direction = direction
+        self._limit = limit_n
+
+    def where(self, field: str, op: str, value) -> "_FakeQuery":
+        return _FakeQuery(self._docs, [*self._filters, (field, op, value)], self._order_field, self._direction, self._limit)
+
+    def order_by(self, field: str, direction=None) -> "_FakeQuery":
+        return _FakeQuery(self._docs, self._filters, field, direction, self._limit)
+
+    def limit(self, n: int) -> "_FakeQuery":
+        return _FakeQuery(self._docs, self._filters, self._order_field, self._direction, n)
+
+    def stream(self) -> list[_FakeDocSnapshot]:
+        def _matches(data: dict) -> bool:
+            for field, op, value in self._filters:
+                current = data.get(field)
+                if op == "==" and current != value:
+                    return False
+                if op == ">=" and not (current is not None and current >= value):
+                    return False
+                if op == "<=" and not (current is not None and current <= value):
+                    return False
+            return True
+
+        items = [(doc_id, data) for doc_id, data in self._docs.items() if _matches(data)]
+        if self._order_field:
+            reverse = "DESC" in str(self._direction or "").upper()
+            items.sort(key=lambda kv: kv[1].get(self._order_field), reverse=reverse)
+        if self._limit:
+            items = items[: self._limit]
+        return [_FakeDocSnapshot(doc_id, data) for doc_id, data in items]
+
+
+class _FakeCollection:
+    def __init__(self) -> None:
+        self.docs: dict[str, dict] = {}
+        self._auto_counter = 0
+
+    def document(self, doc_id: str) -> _FakeDocRef:
+        return _FakeDocRef(self, doc_id)
+
+    def add(self, data: dict) -> tuple[None, _FakeDocRef]:
+        self._auto_counter += 1
+        doc_id = f"auto{self._auto_counter}"
+        self.docs[doc_id] = dict(data)
+        return (None, _FakeDocRef(self, doc_id))
+
+    def where(self, field: str, op: str, value) -> _FakeQuery:
+        return _FakeQuery(self.docs).where(field, op, value)
+
+    def order_by(self, field: str, direction=None) -> _FakeQuery:
+        return _FakeQuery(self.docs).order_by(field, direction)
+
+    def limit(self, n: int) -> _FakeQuery:
+        return _FakeQuery(self.docs).limit(n)
+
+
+class FakeFirestoreClient:
+    """Stub in-memory do client Firestore — implementa só o subset usado
+    pelo código de produção (ver docstring do módulo)."""
+
+    def __init__(self) -> None:
+        self._collections: dict[str, _FakeCollection] = {}
+
+    def collection(self, name: str) -> _FakeCollection:
+        return self._collections.setdefault(name, _FakeCollection())
+
+
+@dataclass
+class FakeFirestoreRuntime:
+    client: FakeFirestoreClient
