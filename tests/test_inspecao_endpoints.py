@@ -8,6 +8,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from auth.security import create_access_token
+from auth.settings import load_jwt_settings
+
 from api.main import app
 from api.models.inspecao_request import LaudoCompletoRequest, LaudoSinteticoRequest
 from api.models.inspecao_response import ModeloInfoResponse
@@ -21,6 +24,14 @@ TAG = "Inspeção de Medidor de Consumo"
 def client() -> TestClient:
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture()
+def auth_headers() -> dict[str, str]:
+    """Token JWT válido (assinado com o `JWT_SECRET` de teste fixado em
+    `tests/conftest.py`) — as rotas de `/inspecao/*` agora exigem login."""
+    token = create_access_token("teste@energisa.com.br", load_jwt_settings())
+    return {"Authorization": f"Bearer {token}"}
 
 
 def _laudo_completo_example() -> dict[str, object]:
@@ -50,29 +61,49 @@ def _assert_successful_inspecao_payload(payload: dict[str, object]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_laudo_completo_valid_payload_returns_200_with_inference(client: TestClient) -> None:
+def test_laudo_completo_valid_payload_returns_200_with_inference(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
     if getattr(client.app.state, "runtime", None) is None:
         pytest.skip("Runtime de inferência não carregado (artefatos ausentes)")
 
-    response = client.post("/inspecao/laudo_completo", json=_laudo_completo_example())
+    response = client.post("/inspecao/laudo_completo", json=_laudo_completo_example(), headers=auth_headers)
 
     assert response.status_code == 200
     _assert_successful_inspecao_payload(response.json())
 
 
-def test_laudo_completo_invalid_payload_returns_422(client: TestClient) -> None:
-    response = client.post("/inspecao/laudo_completo", json={"campo_que_nao_existe": 1})
+def test_laudo_completo_invalid_payload_returns_422(client: TestClient, auth_headers: dict[str, str]) -> None:
+    response = client.post("/inspecao/laudo_completo", json={"campo_que_nao_existe": 1}, headers=auth_headers)
 
     assert response.status_code == 422
 
 
-def test_laudo_completo_without_runtime_returns_500(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_laudo_completo_without_runtime_returns_500(
+    client: TestClient, auth_headers: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr(client.app.state, "runtime", None)
 
-    response = client.post("/inspecao/laudo_completo", json=_laudo_completo_example())
+    response = client.post("/inspecao/laudo_completo", json=_laudo_completo_example(), headers=auth_headers)
 
     assert response.status_code == 500
     assert "Runtime" in response.json()["detail"] or "artefato" in response.json()["detail"].lower() or "indisponível" in response.json()["detail"].lower()
+
+
+def test_laudo_completo_without_token_returns_401(client: TestClient) -> None:
+    response = client.post("/inspecao/laudo_completo", json=_laudo_completo_example())
+
+    assert response.status_code == 401
+
+
+def test_laudo_completo_with_invalid_token_returns_401(client: TestClient) -> None:
+    response = client.post(
+        "/inspecao/laudo_completo",
+        json=_laudo_completo_example(),
+        headers={"Authorization": "Bearer token-invalido"},
+    )
+
+    assert response.status_code == 401
 
 
 # ---------------------------------------------------------------------------
@@ -80,11 +111,13 @@ def test_laudo_completo_without_runtime_returns_500(client: TestClient, monkeypa
 # ---------------------------------------------------------------------------
 
 
-def test_laudo_sintetico_valid_payload_returns_200_with_inference(client: TestClient) -> None:
+def test_laudo_sintetico_valid_payload_returns_200_with_inference(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
     if getattr(client.app.state, "runtime", None) is None:
         pytest.skip("Runtime de inferência não carregado (artefatos ausentes)")
 
-    response = client.post("/inspecao/laudo_sintetico", json=_laudo_sintetico_example())
+    response = client.post("/inspecao/laudo_sintetico", json=_laudo_sintetico_example(), headers=auth_headers)
 
     assert response.status_code == 200
     _assert_successful_inspecao_payload(response.json())
@@ -93,10 +126,16 @@ def test_laudo_sintetico_valid_payload_returns_200_with_inference(client: TestCl
     assert abs(sum(proba.values()) - 1.0) < 1e-3 or len(proba) > 0
 
 
-def test_laudo_sintetico_invalid_payload_returns_422(client: TestClient) -> None:
-    response = client.post("/inspecao/laudo_sintetico", json={})
+def test_laudo_sintetico_invalid_payload_returns_422(client: TestClient, auth_headers: dict[str, str]) -> None:
+    response = client.post("/inspecao/laudo_sintetico", json={}, headers=auth_headers)
 
     assert response.status_code == 422
+
+
+def test_laudo_sintetico_without_token_returns_401(client: TestClient) -> None:
+    response = client.post("/inspecao/laudo_sintetico", json=_laudo_sintetico_example())
+
+    assert response.status_code == 401
 
 
 # ---------------------------------------------------------------------------
@@ -113,13 +152,17 @@ def _build_csv_bytes(rows: list[dict[str, object]]) -> bytes:
     return buffer.getvalue().encode("utf-8")
 
 
-def test_csv_upload_with_valid_rows_returns_200_with_inference(client: TestClient) -> None:
+def test_csv_upload_with_valid_rows_returns_200_with_inference(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
     if getattr(client.app.state, "runtime", None) is None:
         pytest.skip("Runtime de inferência não carregado (artefatos ausentes)")
 
     csv_bytes = _build_csv_bytes([_laudo_completo_example(), _laudo_completo_example()])
 
-    response = client.post("/inspecao/csv", files={"arquivo": ("laudos.csv", csv_bytes, "text/csv")})
+    response = client.post(
+        "/inspecao/csv", files={"arquivo": ("laudos.csv", csv_bytes, "text/csv")}, headers=auth_headers
+    )
 
     assert response.status_code == 200
     items = response.json()
@@ -130,10 +173,14 @@ def test_csv_upload_with_valid_rows_returns_200_with_inference(client: TestClien
         _assert_successful_inspecao_payload(item)
 
 
-def test_csv_upload_with_invalid_row_returns_422_with_per_row_errors(client: TestClient) -> None:
+def test_csv_upload_with_invalid_row_returns_422_with_per_row_errors(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
     csv_bytes = "campo_que_nao_existe\n1\n".encode("utf-8")
 
-    response = client.post("/inspecao/csv", files={"arquivo": ("laudos.csv", csv_bytes, "text/csv")})
+    response = client.post(
+        "/inspecao/csv", files={"arquivo": ("laudos.csv", csv_bytes, "text/csv")}, headers=auth_headers
+    )
 
     assert response.status_code == 422
     detail = response.json()["detail"]
@@ -141,10 +188,18 @@ def test_csv_upload_with_invalid_row_returns_422_with_per_row_errors(client: Tes
     assert detail["linhas_invalidas"][0]["numero_linha"] == 1
 
 
-def test_csv_upload_with_empty_file_returns_422(client: TestClient) -> None:
-    response = client.post("/inspecao/csv", files={"arquivo": ("laudos.csv", b"", "text/csv")})
+def test_csv_upload_with_empty_file_returns_422(client: TestClient, auth_headers: dict[str, str]) -> None:
+    response = client.post("/inspecao/csv", files={"arquivo": ("laudos.csv", b"", "text/csv")}, headers=auth_headers)
 
     assert response.status_code == 422
+
+
+def test_csv_upload_without_token_returns_401(client: TestClient) -> None:
+    csv_bytes = _build_csv_bytes([_laudo_completo_example()])
+
+    response = client.post("/inspecao/csv", files={"arquivo": ("laudos.csv", csv_bytes, "text/csv")})
+
+    assert response.status_code == 401
 
 
 # ---------------------------------------------------------------------------
@@ -152,13 +207,21 @@ def test_csv_upload_with_empty_file_returns_422(client: TestClient) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_listar_modelos_returns_200_even_without_compiled_models(client: TestClient) -> None:
-    response = client.get("/inspecao/modelos")
+def test_listar_modelos_returns_200_even_without_compiled_models(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    response = client.get("/inspecao/modelos", headers=auth_headers)
 
     assert response.status_code == 200
     payload = response.json()
     assert "champion" in payload
     assert "message" in payload
+
+
+def test_listar_modelos_without_token_returns_401(client: TestClient) -> None:
+    response = client.get("/inspecao/modelos")
+
+    assert response.status_code == 401
 
 
 def test_obter_info_modelos_service_reports_champion_when_present(tmp_path: Path) -> None:
@@ -219,6 +282,7 @@ def test_openapi_schema_includes_all_four_endpoints_with_expected_tag(client: Te
                 assert operation.get("summary")
                 assert operation.get("description")
                 assert "422" in operation.get("responses", {}) or "500" in operation.get("responses", {})
+                assert "401" in operation.get("responses", {})
 
     assert found_operations == expected_operations
     assert TAG in all_tags

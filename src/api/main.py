@@ -16,7 +16,12 @@ from fastapi import FastAPI, Request
 from llm.reviewer import build_default_reviewer
 from log import get_log
 
+from auth.settings import load_jwt_settings
+from db.firestore.client import FirestoreRuntimeError, load_firestore_runtime
+
 from .model_runtime import ModelRuntimeError, load_model_runtime
+from .routers.auth import router as auth_router
+from .routers.historico import router as historico_router
 from .routers.inspecao import router as inspecao_router
 from .services.inspecao import load_llm_dependencies
 
@@ -53,6 +58,19 @@ async def lifespan(app: FastAPI):
         getattr(app.state.glossary, "status", "unknown"),
     )
 
+    # Decisão Task 010: Firestore é fail-soft, por consistência com o
+    # runtime de modelo — a API sobe mesmo sem Firestore; rotas que dependem
+    # dele (auth, histórico, persistência de inferência) devolvem 503/erro
+    # tratado individualmente.
+    try:
+        app.state.firestore = load_firestore_runtime()
+        log.info("Runtime Firestore carregado")
+    except FirestoreRuntimeError as exc:
+        app.state.firestore = None
+        log.error("Firestore indisponível no startup: %s", exc)
+
+    app.state.jwt_settings = load_jwt_settings()
+
     try:
         yield
     except Exception:
@@ -61,6 +79,7 @@ async def lifespan(app: FastAPI):
     finally:
         app.state.runtime = None
         app.state.llm_reviewer = None
+        app.state.firestore = None
         log.info("Encerrando API IMeC Analysis")
 
 
@@ -71,7 +90,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.include_router(auth_router)
 app.include_router(inspecao_router)
+app.include_router(historico_router)
 
 
 @app.get(

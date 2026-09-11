@@ -46,6 +46,9 @@ model/**/*.csv
 # Dados de negócio sensíveis (dataset real)
 *.xlsx
 
+# Carga inicial de usuários (Task 010) — contém senhas em texto claro
+scripts/db/firestore/usuarios.json
+
 # Unit test / coverage reports
 htmlcov/
 .tox/

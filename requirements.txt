@@ -7,6 +7,11 @@ httpx==0.28.1
 python-dotenv==1.1.1
 cryptography==49.0.0
 
+# Firestore / Autenticação JWT (Task 010)
+google-cloud-firestore==2.20.1
+PyJWT==2.10.1
+bcrypt==4.2.1
+
 # LLM (Task 008 — LangChain)
 langchain-core==1.5.2
 langchain-openai==1.4.1

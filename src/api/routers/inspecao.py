@@ -11,15 +11,20 @@ from __future__ import annotations
 import csv
 import io
 
-from fastapi import APIRouter, HTTPException, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile
 from pydantic import ValidationError
 
 from log import get_log
 
 from api.services import inspecao as services
+from api.services import historico as historico_services
 from api.models.inspecao_request import LaudoCompletoRequest, LaudoSinteticoRequest, validate_laudo_completo_row
 from api.models.inspecao_response import InspecaoLaudoCsvItemResponse, InspecaoLaudoResponse, ModeloInfoResponse
 from api.model_runtime import ModelRuntimeError
+
+from ..dependencies.auth import get_current_user
+from ..models.auth import AuthenticatedUser
+from ._common_responses import RESPONSE_401_UNAUTHORIZED
 
 log = get_log()
 
@@ -73,6 +78,19 @@ def _inference_error_to_http(exc: ModelRuntimeError, endpoint: str) -> HTTPExcep
     return HTTPException(status_code=500, detail=str(exc))
 
 
+def _persistir_inferencia_fail_soft(request: Request, response: InspecaoLaudoResponse, usuario_id: str) -> None:
+    """Grava a inferência no histórico (Firestore). Fail-soft: uma falha aqui
+    nunca derruba a resposta de análise já montada ao cliente."""
+    firestore_runtime = getattr(request.app.state, "firestore", None)
+    if firestore_runtime is None:
+        log.warning("Persistência de histórico pulada: Firestore indisponível")
+        return
+    try:
+        historico_services.persistir_inferencia(firestore_runtime.client, response, usuario_id=usuario_id)
+    except Exception:
+        log.exception("Falha ao persistir inferência no Firestore (fail-soft)")
+
+
 @router.post(
     "/inspecao/laudo_completo",
     tags=[TAG],
@@ -87,22 +105,25 @@ def _inference_error_to_http(exc: ModelRuntimeError, endpoint: str) -> HTTPExcep
         "padrão da análise e, quando permitido, a revisão por IA (`revisao_llm`)."
     ),
     response_model=InspecaoLaudoResponse,
-    responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
+    responses={422: _RESPONSE_422_MODEL_INVALID, 401: RESPONSE_401_UNAUTHORIZED, 500: _RESPONSE_500_INFERENCE},
 )
 def analisar_laudo_completo(
     laudo: LaudoCompletoRequest,
     request: Request,
     revisao_llm: bool | None = _REVISAO_LLM_QUERY,
+    usuario: AuthenticatedUser = Depends(get_current_user),
 ) -> InspecaoLaudoResponse:
     log.info("Recebida solicitação de análise de laudo completo (NUMLAUDO=%s)", getattr(laudo, "NUMLAUDO", None))
     try:
-        return services.analisar_laudo_completo(
+        response = services.analisar_laudo_completo(
             laudo,
             _runtime_from_request(request),
             **_llm_kwargs_from_request(request, revisao_llm),
         )
     except ModelRuntimeError as exc:
         raise _inference_error_to_http(exc, "análise de laudo completo") from exc
+    _persistir_inferencia_fail_soft(request, response, usuario.email)
+    return response
 
 
 @router.post(
@@ -116,22 +137,25 @@ def analisar_laudo_completo(
         "opcional."
     ),
     response_model=InspecaoLaudoResponse,
-    responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
+    responses={422: _RESPONSE_422_MODEL_INVALID, 401: RESPONSE_401_UNAUTHORIZED, 500: _RESPONSE_500_INFERENCE},
 )
 def analisar_laudo_sintetico(
     laudo: LaudoSinteticoRequest,
     request: Request,
     revisao_llm: bool | None = _REVISAO_LLM_QUERY,
+    usuario: AuthenticatedUser = Depends(get_current_user),
 ) -> InspecaoLaudoResponse:
     log.info("Recebida solicitação de análise de laudo sintético (NUMLAUDO=%s)", getattr(laudo, "NUMLAUDO", None))
     try:
-        return services.analisar_laudo_sintetico(
+        response = services.analisar_laudo_sintetico(
             laudo,
             _runtime_from_request(request),
             **_llm_kwargs_from_request(request, revisao_llm),
         )
     except ModelRuntimeError as exc:
         raise _inference_error_to_http(exc, "análise de laudo sintético") from exc
+    _persistir_inferencia_fail_soft(request, response, usuario.email)
+    return response
 
 
 @router.post(
@@ -148,9 +172,13 @@ def analisar_laudo_sintetico(
         "executa revisão por IA (LLM)."
     ),
     response_model=list[InspecaoLaudoCsvItemResponse],
-    responses={422: _RESPONSE_422_MODEL_INVALID, 500: _RESPONSE_500_INFERENCE},
+    responses={422: _RESPONSE_422_MODEL_INVALID, 401: RESPONSE_401_UNAUTHORIZED, 500: _RESPONSE_500_INFERENCE},
 )
-async def analisar_csv_upload(arquivo: UploadFile, request: Request) -> list[InspecaoLaudoCsvItemResponse]:
+async def analisar_csv_upload(
+    arquivo: UploadFile,
+    request: Request,
+    usuario: AuthenticatedUser = Depends(get_current_user),
+) -> list[InspecaoLaudoCsvItemResponse]:
     raw_bytes = await arquivo.read()
     try:
         text = raw_bytes.decode("utf-8-sig")
@@ -199,9 +227,12 @@ async def analisar_csv_upload(arquivo: UploadFile, request: Request) -> list[Ins
         "(não é erro)."
     ),
     response_model=ModeloInfoResponse,
-    responses={500: {"description": "Falha inesperada ao ler os metadados em model/compiled/."}},
+    responses={
+        401: RESPONSE_401_UNAUTHORIZED,
+        500: {"description": "Falha inesperada ao ler os metadados em model/compiled/."},
+    },
 )
-def listar_modelos() -> ModeloInfoResponse:
+def listar_modelos(usuario: AuthenticatedUser = Depends(get_current_user)) -> ModeloInfoResponse:
     try:
         return services.obter_info_modelos()
     except Exception as exc:  # pragma: no cover - defensivo (I/O inesperado)
