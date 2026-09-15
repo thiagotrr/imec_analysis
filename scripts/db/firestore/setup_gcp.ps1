@@ -7,7 +7,7 @@
     IAM ou o índice composto já existirem. Resolve PROJECT_NUMBER
     dinamicamente via `gcloud projects describe` (não precisa ser colado
     manualmente). Pré-requisitos: `gcloud auth login` já feito e billing
-    habilitado no projeto (ver docs/proposta_publicacao_experimental.md §3.1).
+    habilitado no projeto (ver docs/runbook_publicacao.md §3.1).
 
 .PARAMETER ProjectId
     ID do projeto GCP (default: imec-analysis).

@@ -12,7 +12,7 @@
 #   ./scripts/db/firestore/setup_gcp.sh imec-analysis us-central1
 #
 # Pré-requisitos: gcloud autenticado (gcloud auth login) e billing
-# habilitado no projeto (ver docs/proposta_publicacao_experimental.md §3.1).
+# habilitado no projeto (ver docs/runbook_publicacao.md §3.1).
 # No Cloud Shell, o gcloud já vem pronto e autenticado com a conta logada
 # no navegador — basta colar e rodar.
 

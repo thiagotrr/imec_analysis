@@ -10,7 +10,7 @@
 ## 1. Decisões confirmadas
 
 - Criação de usuário: **só via scripts administrativos** (`scripts/db/firestore/gerenciar_usuarios.py`) — não há endpoint HTTP de cadastro. O único endpoint de auth é `POST /auth/login`.
-- Autenticação **obrigatória em todas as rotas do recurso `/inspecao`** (`laudo_completo`, `laudo_sintetico`, `csv`, `modelos`) e em `GET /historico/{numero_laudo}`. Isso muda a postura do experimento público documentado em `docs/proposta_publicacao_experimental.md` (`--allow-unauthenticated` deixa de significar "sem login" nessas rotas).
+- Autenticação **obrigatória em todas as rotas do recurso `/inspecao`** (`laudo_completo`, `laudo_sintetico`, `csv`, `modelos`) e em `GET /historico/{numero_laudo}`. Isso muda a postura do experimento público documentado em `docs/runbook_publicacao.md` (`--allow-unauthenticated` deixa de significar "sem login" nessas rotas).
 - Persistência do CSV em lote **fora de escopo** (mesma decisão já aplicada à revisão LLM em lote): a rota `/inspecao/csv` passa a exigir login, mas não grava histórico.
 - Login é obrigatoriamente um e-mail corporativo `@energisa.com.br`.
 - Nome do banco Firestore: **`imec-analysis`** (não o banco `(default)` de um projeto GCP) — criado explicitamente com esse nome. (Nota: o Firestore não aceita underscore em `database_id` — só `[a-z][0-9]-`; por isso hífen, não `imec_analysis`.)
@@ -38,7 +38,7 @@ Pacote `src/db/firestore/` — namespace `src/db/` fica reservado para eventuais
 
 `scripts/db/firestore/setup_gcp.ps1` (idempotente — pode ser reexecutado sem erro se API/banco/binding/índice já existirem). Resolve `PROJECT_NUMBER` dinamicamente via `gcloud projects describe` em vez de exigir que o operador copie o valor manualmente.
 
-Pré-requisitos: `gcloud auth login` e billing habilitado no projeto (`docs/proposta_publicacao_experimental.md §3.1`).
+Pré-requisitos: `gcloud auth login` e billing habilitado no projeto (`docs/runbook_publicacao.md §3.1`).
 
 ```powershell
 ./scripts/db/firestore/setup_gcp.ps1
@@ -77,7 +77,7 @@ O script executa:
   - `load-initial` — carga inicial em lote, lendo `scripts/db/firestore/usuarios.json` (mesmo diretório do script; nunca commitado — está no `.gitignore`, contém senhas em texto claro). O próprio script traz, em docstring, o formato esperado do arquivo.
 - **Armazenamento:** coleção `users`, doc ID = e-mail normalizado (lowercase). `src/auth/users_repository.py`.
 - **Hash de senha:** `bcrypt` — biblioteca ativa e leve (`hashpw`/`checkpw`); dispensa `passlib` (manutenção parada) e dispensa reimplementar KDF de senha em cima de `cryptography`.
-- **JWT:** `PyJWT` + `HS256` — lib enxuta, único serviço emite e valida o token hoje (RS256 só se justificaria com múltiplos serviços consumidores). Algoritmo fixado em código, nunca lido do header do token (`algorithms=["HS256"]` sempre explícito no `jwt.decode` — evita algorithm confusion). Segredo via Secret Manager (`JWT_SECRET`), mesmo padrão de `OPENAI_API_KEY` (`docs/proposta_publicacao_experimental.md §3.4`). Claims: `sub` (e-mail), `iat`, `exp`, `iss="imec-analysis-api"`. Sem refresh token — expiração curta configurável (`JWT_EXPIRE_MINUTES`, default 480 = 8h); relogin cobre o caso de uso.
+- **JWT:** `PyJWT` + `HS256` — lib enxuta, único serviço emite e valida o token hoje (RS256 só se justificaria com múltiplos serviços consumidores). Algoritmo fixado em código, nunca lido do header do token (`algorithms=["HS256"]` sempre explícito no `jwt.decode` — evita algorithm confusion). Segredo via Secret Manager (`JWT_SECRET`), mesmo padrão de `OPENAI_API_KEY` (`docs/runbook_publicacao.md §3.4`). Claims: `sub` (e-mail), `iat`, `exp`, `iss="imec-analysis-api"`. Sem refresh token — expiração curta configurável (`JWT_EXPIRE_MINUTES`, default 480 = 8h); relogin cobre o caso de uso.
 
 ### Onde o JWT "mora" — modelo stateless
 
@@ -102,11 +102,11 @@ Todas essas rotas documentam `401` no OpenAPI (`responses={401: RESPONSE_401_UNA
 - **Firestore para usuários (não Secret Manager com lista fixa):** permite ativar/desativar usuário sem novo deploy, e reaproveita o mesmo arcabouço da seção 2.
 - **Sem blacklist/revogação:** `ativo=false` só é checado no login (ver "modelo stateless" acima) — trade-off aceito: usuário desativado com token válido ainda acessa até o `exp`.
 - **Sem cadastro público, sem rate limiting no login:** menor superfície de ataque; rate limiting fica como risco conhecido/fora de escopo.
-- **Mudança de postura em `/inspecao/*`:** o Swagger deixa de ser utilizável anonimamente — o runbook de smoke test de `docs/proposta_publicacao_experimental.md` passa a precisar de um usuário de teste.
+- **Mudança de postura em `/inspecao/*`:** o Swagger deixa de ser utilizável anonimamente — o runbook de smoke test de `docs/runbook_publicacao.md` passa a precisar de um usuário de teste.
 
 ### Segredo JWT — Secret Manager
 
-Mesmo padrão de `docs/proposta_publicacao_experimental.md §3.4`:
+Mesmo padrão de `docs/runbook_publicacao.md §3.4`:
 
 ```powershell
 $secure = Read-Host "Cole o JWT_SECRET (não ecoa)" -AsSecureString
