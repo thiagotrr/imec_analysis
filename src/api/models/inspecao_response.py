@@ -14,9 +14,8 @@ class InspecaoLaudoResponse(BaseModel):
                 "numero_laudo": "2025006988",
                 "classe_prevista": "10",
                 "dsc_classe_prevista": (
-                    "O medidor está funcionando de acordo com o Regulamento Técnico Metrológico "
-                    "acima referenciado. Os erros percentuais do medidor estão COMPATÍVEIS com "
-                    "sua classe de exatidão."
+                    "O medidor não está de acordo com o Regulamento Técnico Metrológico "
+                    "acima referenciado."
                 ),
                 "camada": "A",
                 "situacao_afericao": "Reprovado",
@@ -30,9 +29,8 @@ class InspecaoLaudoResponse(BaseModel):
                 "predict_proba": {"10": 0.9123},
                 "dsc_predict_proba": {
                     "10": (
-                        "O medidor está funcionando de acordo com o Regulamento Técnico "
-                        "Metrológico acima referenciado. Os erros percentuais do medidor estão "
-                        "COMPATÍVEIS com sua classe de exatidão."
+                        "O medidor não está de acordo com o Regulamento Técnico Metrológico "
+                        "acima referenciado."
                     )
                 },
                 "revisao_llm": None,
