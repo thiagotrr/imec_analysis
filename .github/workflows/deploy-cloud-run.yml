@@ -1,7 +1,7 @@
 name: Deploy Cloud Run (manual)
 
 # Disparo manual apenas (Task 010) — nenhum deploy automático em push/merge.
-# Ver docs/proposta_publicacao_experimental.md §3.6 para o setup único da
+# Ver docs/runbook_publicacao.md §3.6 para o setup único da
 # service account e do secret GCP_SA_KEY necessários antes do primeiro uso.
 on:
   workflow_dispatch:

@@ -1,10 +1,21 @@
-# Proposta de publicação experimental — API + modelo compilado (PKL)
+# Runbook de publicação — API + modelo compilado (PKL)
 
 **Escopo:** expor a API FastAPI de inferência já existente, carregando os artefatos compilados (`champion.pkl` + `preprocessing_pipeline.pkl`).  
 **Fora de escopo:** reexecutar pipelines de preparação, exploração, treino ou `scripts/compile_models.py`. O modelo já está compilado e versionado.  
-**Objetivo:** avaliar o comportamento online com **consumo mínimo de requisições**, em ambiente gratuito, sem pretensão de produção.
+**Objetivo:** manter o ambiente experimental publicado com **consumo mínimo de requisições**, em ambiente gratuito, sem pretensão de produção.
 
 > **Atualizado pela Task 010** (Firestore + autenticação JWT + histórico de inferências — ver `docs/task010_firestore_auth_historico.md` para as decisões arquiteturais completas). A partir desta task, `/inspecao/*` e `/historico/*` exigem login (`POST /auth/login`) — `--allow-unauthenticated` no Cloud Run continua controlando apenas quem pode **invocar** o serviço na rede (nível de infraestrutura); a autenticação por JWT é uma camada adicional, na aplicação. Os passos de infraestrutura do Firestore (§3.1b) e do segredo JWT (§3.4b) são novos nesta revisão.
+
+## Como disparar a publicação
+
+Dois caminhos, dependendo da máquina que fizer o deploy — nenhum deploy acontece sozinho: sempre depende de uma ação humana (aprovação do PR) e, em seguida, de uma execução explícita (agente ou workflow):
+
+| Máquina | Gatilho | Caminho |
+|---|---|---|
+| **Com `gcloud` instalado** | Depois que o PR é aprovado/mergeado em `main`, um assistente de código agêntico (Claude Code, Cursor, GitHub Copilot etc.) pode executar os comandos de deploy desta página (§3.2) diretamente na máquina, a pedido do usuário | `gcloud run deploy` local (§3.1–§3.5) |
+| **Sem `gcloud` instalado** | Disparo **manual** pela aba Actions do GitHub (`workflow_dispatch`) — sem alteração de comportamento, sem deploy automático em push/merge | `.github/workflows/deploy-cloud-run.yml` (§3.6) |
+
+Nota para quem opera com um assistente agêntico: mesmo com `gcloud` presente e o PR já aprovado, o deploy em si (`gcloud run deploy`, alteração de secrets, etc.) é uma ação que afeta um serviço público em execução — o agente deve confirmar explicitamente com o usuário antes de executar, não apenas inferir autorização a partir da aprovação do PR.
 
 ---
 
